@@ -58,7 +58,10 @@ def netD(input_images, y, BATCH_SIZE, reuse=False):
    print 'DISCRIMINATOR reuse = '+str(reuse)
    sc = tf.get_variable_scope()
    with tf.variable_scope(sc, reuse=reuse):
-     
+
+      print tf.shape(y)
+      exit()
+
       # reshape so it's batchx1x1xy_size
       y = tf.reshape(y, shape=[BATCH_SIZE, 1, 1, 9])
       input_ = conv_cond_concat(input_images, y)
