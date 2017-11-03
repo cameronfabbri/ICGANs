@@ -14,6 +14,8 @@ import math
    Useful for conditional gans and stuff
 '''
 def conv_cond_concat(x, y):
+   print x
+   print y
    x_shapes = x.get_shape()
    y_shapes = y.get_shape()
    return tf.concat([x, y*tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])], 3)

@@ -1,12 +1,10 @@
 '''
-
-   Main training file for ICGANs
-
+   conditional gan
 '''
-
-from architecture import netD, netG
 import scipy.misc as misc
 import tensorflow as tf
+import tensorflow.contrib.layers as tcl
+from tf_ops import *
 import numpy as np
 import argparse
 import data_ops
@@ -60,13 +58,12 @@ def netD(input_images, y, BATCH_SIZE, reuse=False):
    print 'DISCRIMINATOR reuse = '+str(reuse)
    sc = tf.get_variable_scope()
    with tf.variable_scope(sc, reuse=reuse):
+     
+      # reshape so it's batchx1x1xy_size
+      y = tf.reshape(y, shape=[BATCH_SIZE, 1, 1, 9])
+      input_ = conv_cond_concat(input_images, y)
 
-      # repeat y so it is 64x64 and concatenate it as a channel
-      input_images = conv_cond_concat(input_images, y)
-      print 'input_images:',input_images
-      exit()
-
-      conv1 = tcl.conv2d(input_images, 64, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
+      conv1 = tcl.conv2d(input_, 64, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
       conv1 = lrelu(conv1)
       
       conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv2')
@@ -103,7 +100,7 @@ if __name__ == '__main__':
    parser = argparse.ArgumentParser()
    parser.add_argument('--LOSS',    required=False,help='Type of GAN loss to use',default='wgan')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',default='celeba')
-   parser.add_argument('--DATA_DIR',   required=True,help='Directory where data is')
+   parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is',default='./')
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',type=int,default=64)
    a = parser.parse_args()
 
@@ -124,19 +121,23 @@ if __name__ == '__main__':
 
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
+   real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
    y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, y_size), name='z')
 
    # generated images
-   gen_images = netG(z, BATCH_SIZE)
+   gen_images = netG(z, y, BATCH_SIZE)
 
    # get the output from D on the real and fake data
-   errD_real = netD(real_images, BATCH_SIZE)
-   errD_fake = netD(gen_images, BATCH_SIZE, reuse=True)
+   errD_real = netD(real_images, y, BATCH_SIZE)
+   errD_fake = netD(gen_images, y, BATCH_SIZE, reuse=True)
 
    # cost functions
    errD = tf.reduce_mean(errD_real) - tf.reduce_mean(errD_fake)
    errG = tf.reduce_mean(errD_fake)
+
+   print 'here'
+   exit()
 
    # gradient penalty
    epsilon = tf.random_uniform([], 0.0, 1.0)
