@@ -207,6 +207,7 @@ if __name__ == '__main__':
          batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y = random.sample(annots, BATCH_SIZE)
          sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y})
+      # TODO gotta send in images too
 
       print 'here'
       exit()
