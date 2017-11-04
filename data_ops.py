@@ -119,10 +119,12 @@ def load_celeba(data_dir, mode='train'):
       image_id = ntpath.basename(image)
       if image_id in train_ids:
          img = misc.imread(image)
+         img = (img/127.5)-1.0
          train_images[i,...] = img
          i+=1
       if image_id in test_ids:
          img = misc.imread(image)
+         img = (img/127.5)-1.0
          train_images[j,...] = img
          j+=1
       if count == 100: break

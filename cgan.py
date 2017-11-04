@@ -59,11 +59,10 @@ def netD(input_images, y, BATCH_SIZE, reuse=False):
    sc = tf.get_variable_scope()
    with tf.variable_scope(sc, reuse=reuse):
 
-      print tf.shape(y)
-      exit()
+      y_dim = int(y.get_shape().as_list()[-1])
 
       # reshape so it's batchx1x1xy_size
-      y = tf.reshape(y, shape=[BATCH_SIZE, 1, 1, 9])
+      y = tf.reshape(y, shape=[BATCH_SIZE, 1, 1, y_dim])
       input_ = conv_cond_concat(input_images, y)
 
       conv1 = tcl.conv2d(input_, 64, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
@@ -105,12 +104,14 @@ if __name__ == '__main__':
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is',default='./')
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',type=int,default=64)
+   parser.add_argument('--MAX_STEPS', required=False,help='Maximum training iterations',type=int,default=100000)
    a = parser.parse_args()
 
    LOSS           = a.LOSS
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
+   MAX_STEPS      = a.MAX_STEPS
 
    CHECKPOINT_DIR = 'checkpoints/DATASET_'+DATASET+'/LOSS_'+LOSS+'/'
    IMAGES_DIR     = CHECKPOINT_DIR+'images/'
@@ -119,7 +120,7 @@ if __name__ == '__main__':
    except: pass
 
    # size of the attribute depends on the dataset
-   if DATASET == 'celeba': y_size = 9
+   if DATASET == 'celeba': y_size = 15
    if DATASET == 'mnist':  y_size = 1
 
    # placeholders for data going into the network
@@ -139,13 +140,10 @@ if __name__ == '__main__':
    errD = tf.reduce_mean(errD_real) - tf.reduce_mean(errD_fake)
    errG = tf.reduce_mean(errD_fake)
 
-   print 'here'
-   exit()
-
    # gradient penalty
    epsilon = tf.random_uniform([], 0.0, 1.0)
    x_hat = real_images*epsilon + (1-epsilon)*gen_images
-   d_hat = netD(x_hat, BATCH_SIZE, reuse=True)
+   d_hat = netD(x_hat, y, BATCH_SIZE, reuse=True)
    gradients = tf.gradients(d_hat, x_hat)[0]
    slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
    gradient_penalty = 10*tf.reduce_mean((slopes-1.0)**2)
@@ -197,15 +195,21 @@ if __name__ == '__main__':
 
    n_critic = 5
 
+   print 'Loading data...'
+   images, annots = data_ops.load_celeba(DATA_DIR, mode='train')
+
    while step < MAX_STEPS:
       
       start = time.time()
 
-      # train the discriminator for 5 or 25 runs
+      # train the discriminator
       for critic_itr in range(n_critic):
          batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-         sess.run(D_train_op, feed_dict={z:batch_z})
+         batch_y = random.sample(annots, BATCH_SIZE)
+         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y})
 
+      print 'here'
+      exit()
       # now train the generator once! use normal distribution, not uniform!!
       batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       sess.run(G_train_op, feed_dict={z:batch_z})
