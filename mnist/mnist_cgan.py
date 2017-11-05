@@ -15,7 +15,7 @@ import sys
 import cv2
 import os
 
-sys.path.insert(0, 'ops/')
+sys.path.insert(0, '../ops/')
 
 from tf_ops import *
 import data_ops
