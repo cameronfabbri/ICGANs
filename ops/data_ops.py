@@ -108,7 +108,7 @@ def load_mnist(data_dir, mode='train'):
          label[l] = 1
          mnist_val_images.append(np.reshape(t, (28, 28, 1)))
          mnist_val_labels.append(label)
-      return np.asarray(mnist_test_images), np.asarray(mnist_test_labels)
+      return np.asarray(mnist_val_images), np.asarray(mnist_val_labels)
 
    if mode == 'test':
       mnist_test_images  = []
@@ -118,7 +118,7 @@ def load_mnist(data_dir, mode='train'):
          label[l] = 1
          mnist_test_images.append(np.reshape(t, (28, 28, 1)))
          mnist_test_labels.append(label)
-      return np.asarray(mnist_val_images), np.asarray(mnist_val_labels)
+      return np.asarray(mnist_test_images), np.asarray(mnist_test_labels)
 
    return 'mode error'
 

@@ -58,14 +58,14 @@ if __name__ == '__main__':
    parser = argparse.ArgumentParser()
    parser.add_argument('--CHECKPOINT_DIR', required=True,help='checkpoint directory',type=str)
    parser.add_argument('--DATASET',        required=False,help='The DATASET to use',      type=str,default='celeba')
-   parser.add_argument('--OUTPUT_DIR',       required=False,help='Directory where data is', type=str,default='./')
+   parser.add_argument('--OUTPUT_DIR',     required=False,help='Directory where data is', type=str,default='./')
    parser.add_argument('--MAX_GEN',        required=False,help='Maximum training steps',  type=int,default=100000)
    a = parser.parse_args()
 
    CHECKPOINT_DIR = a.CHECKPOINT_DIR
    DATASET        = a.DATASET
    DATA_DIR       = a.OUTPUT_DIR
-   MAX_STEPS      = a.MAX_GEN
+   MAX_GEN        = a.MAX_GEN
 
    BATCH_SIZE = 1
 
@@ -99,10 +99,10 @@ if __name__ == '__main__':
          exit()
    
    print 'Loading data...'
-   if DATASET == 'mnist':
-      images, annots = data_ops.load_mnist(DATA_DIR, mode='test')
-      test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
+   images, annots = data_ops.load_mnist(DATA_DIR, mode='test')
+   test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
 
+   test_len = len(test_annots)
 
    step = 0
    while step < MAX_GEN:
@@ -113,8 +113,15 @@ if __name__ == '__main__':
       batch_images = images[idx]
       gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
+      print batch_z
+      print batch_y
+      print gen_imgs.shape
+      exit()
+
       num = np.argmax(batch_y[0])
-      plt.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
+      plt.imsave(OUTPUT_DIR+'image_'+str(step)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
 
+      exit()
 
+      step += 1
 
