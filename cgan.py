@@ -4,16 +4,19 @@
 import scipy.misc as misc
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
-from tf_ops import *
 import numpy as np
 import argparse
-import data_ops
 import random
 import ntpath
 import time
 import sys
 import cv2
 import os
+
+sys.path.insert(0, 'ops/')
+
+from tf_ops import *
+import data_ops
 
 '''
    Generator network
@@ -100,14 +103,16 @@ def netD(input_images, y, BATCH_SIZE, reuse=False):
 if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
-   parser.add_argument('--LOSS',    required=False,help='Type of GAN loss to use',default='wgan')
-   parser.add_argument('--DATASET',    required=False,help='The DATASET to use',default='celeba')
-   parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is',default='./')
-   parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',type=int,default=64)
-   parser.add_argument('--MAX_STEPS', required=False,help='Maximum training iterations',type=int,default=100000)
+   parser.add_argument('--LOSS',       required=False,help='Type of GAN loss to use', type=str,default='wgan')
+   parser.add_argument('--MODE',       required=False,help='train/test/val',          type=str,default='train')
+   parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
+   parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
+   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    a = parser.parse_args()
 
    LOSS           = a.LOSS
+   MODE           = a.MODE
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
@@ -127,7 +132,7 @@ if __name__ == '__main__':
    global_step = tf.Variable(0, name='global_step', trainable=False)
    real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, y_size), name='z')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, y_size), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -189,14 +194,16 @@ if __name__ == '__main__':
    ########################################### training portion
 
    step = sess.run(global_step)
-   
-   coord = tf.train.Coordinator()
-   threads = tf.train.start_queue_runners(sess, coord=coord)
 
    n_critic = 5
 
    print 'Loading data...'
-   images, annots = data_ops.load_celeba(DATA_DIR, mode='train')
+   if DATASET == 'celeba': images, annots = data_ops.load_celeba(DATA_DIR, mode=MODE)
+   if DATASET == 'mnist':  images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
+   
+   train_len = len(annots)
+
+   print 'train num:',train_len
 
    while step < MAX_STEPS:
       
@@ -204,15 +211,23 @@ if __name__ == '__main__':
 
       # train the discriminator
       for critic_itr in range(n_critic):
-         batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-         batch_y = random.sample(annots, BATCH_SIZE)
-         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y})
-      # TODO gotta send in images too
-
+         idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
+         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_y      = annots[idx]
+         batch_images = images[idx]
+         print 'batch_y:',batch_y
+         print 'batch_images:',batch_images.shape
+         #misc.imsave('test.png', batch_images[0])
+         print np.squeeze(batch_images[0]).shape
+         plt.imsave('test.png', np.squeeze(batch_images[0]))
+         exit()
+         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+      
       print 'here'
       exit()
       # now train the generator once! use normal distribution, not uniform!!
       batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+      idx = np.random.choice(np.arange(len(x)), 1000, replace=False)
       sess.run(G_train_op, feed_dict={z:batch_z})
 
       # now get all losses and summary *without* performing a training step - for tensorboard
