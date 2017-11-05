@@ -237,11 +237,14 @@ if __name__ == '__main__':
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
-         batch_z  = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-         gen_imgs = sess.run([gen_images], feed_dict={z:batch_z})
+         idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
+         batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_y      = annots[idx]
+         batch_images = images[idx]
+         gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
-         data_ops.saveImage(gen_imgs[0], step, IMAGES_DIR)
-         print 'Done saving'
+         num = np.argmax(batch_y[0])
+         plt.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num), np.squeeze(gen_imgs), cmap=cm.gray)
 
 
 
