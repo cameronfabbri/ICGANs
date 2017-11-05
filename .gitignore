@@ -10,3 +10,5 @@ log*
 *.png
 *.jpg
 *.pkl
+output/*
+output*
