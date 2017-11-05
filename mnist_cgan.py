@@ -194,10 +194,13 @@ if __name__ == '__main__':
    n_critic = 5
 
    print 'Loading data...'
-   if DATASET == 'celeba': images, annots = data_ops.load_celeba(DATA_DIR, mode=MODE)
-   if DATASET == 'mnist':  images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
+   if DATASET == 'mnist':
+      images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
+      test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
+
    
    train_len = len(annots)
+   test_len  = len(test_annots)
 
    print 'train num:',train_len
 
@@ -237,10 +240,11 @@ if __name__ == '__main__':
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
-         idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-         batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-         batch_y      = annots[idx]
-         batch_images = images[idx]
+
+         idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
+         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_y      = test_annots[idx]
+         batch_images = test_images[idx]
          gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
          num = np.argmax(batch_y[0])
