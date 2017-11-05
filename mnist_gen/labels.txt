@@ -1,5 +1,0 @@
-image_0.png,1
-image_1.png,0
-image_2.png,4
-image_3.png,5
-image_4.png,3
