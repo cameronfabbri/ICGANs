@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
    CHECKPOINT_DIR = a.CHECKPOINT_DIR
    DATASET        = a.DATASET
-   DATA_DIR       = a.OUTPUT_DIR
+   OUTPUT_DIR     = a.OUTPUT_DIR
    MAX_GEN        = a.MAX_GEN
 
    BATCH_SIZE = 1
@@ -99,12 +99,18 @@ if __name__ == '__main__':
          exit()
    
    print 'Loading data...'
-   images, annots = data_ops.load_mnist(DATA_DIR, mode='test')
-   test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
+   images, annots = data_ops.load_mnist('./', mode='test')
+   test_images, test_annots = data_ops.load_mnist('./', mode='test')
 
    test_len = len(test_annots)
 
    step = 0
+
+   latents = []
+
+   # stores the image name and true label
+   lf = open(OUTPUT_DIR+'labels.txt', 'a')
+
    while step < MAX_GEN:
 
       idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
@@ -113,15 +119,12 @@ if __name__ == '__main__':
       batch_images = images[idx]
       gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
-      print batch_z
-      print batch_y
-      print gen_imgs.shape
-      exit()
-
       num = np.argmax(batch_y[0])
       plt.imsave(OUTPUT_DIR+'image_'+str(step)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
 
-      exit()
+      lf.write('image_'+str(step)+'.png,'+str(num))
 
       step += 1
+
+      if step == 2: exit()
 
