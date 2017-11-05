@@ -191,14 +191,12 @@ if __name__ == '__main__':
 
    step = sess.run(global_step)
 
-   n_critic = 5
+   n_critic = 3
 
    print 'Loading data...'
-   if DATASET == 'mnist':
-      images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
-      test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
+   images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
+   test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
 
-   
    train_len = len(annots)
    test_len  = len(test_annots)
 
@@ -214,22 +212,16 @@ if __name__ == '__main__':
          batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = annots[idx]
          batch_images = images[idx]
-         #print 'batch_y:',batch_y
-         #print 'batch_images:',batch_images.shape
-         #misc.imsave('test.png', batch_images[0])
-         #print np.argmax(batch_y[0])
-         #plt.imsave('test.png', np.squeeze(batch_images[0]), cmap=cm.gray)
-         #exit()
          sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
       
       # now train the generator once! use normal distribution, not uniform!!
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-      batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+      batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y      = annots[idx]
       batch_images = images[idx]
       sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
 
-      # now get all losses and summary *without* performing a training step - for tensorboard
+      # now get all losses and summary *without* performing a training step - for tensorboard and printing
       D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
       summary_writer.add_summary(summary, step)
 

@@ -129,7 +129,5 @@ if __name__ == '__main__':
       step += 1
 
    latents = np.asarray(latents)
-
    np.save(OUTPUT_DIR+'latents.npy', latents)
-
    lf.close()
