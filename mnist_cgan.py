@@ -244,7 +244,7 @@ if __name__ == '__main__':
          gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
          num = np.argmax(batch_y[0])
-         plt.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num), np.squeeze(gen_imgs), cmap=cm.gray)
+         plt.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
 
 
 
