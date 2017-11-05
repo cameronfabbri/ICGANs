@@ -122,9 +122,14 @@ if __name__ == '__main__':
       num = np.argmax(batch_y[0])
       plt.imsave(OUTPUT_DIR+'image_'+str(step)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
 
-      lf.write('image_'+str(step)+'.png,'+str(num))
+      latents.append(batch_z[0])
+
+      lf.write('image_'+str(step)+'.png,'+str(num)+'\n')
 
       step += 1
 
-      if step == 2: exit()
+   latents = np.asarray(latents)
 
+   np.save(OUTPUT_DIR+'latents.npy', latents)
+
+   lf.close()
