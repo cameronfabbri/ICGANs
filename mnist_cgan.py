@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
    step = sess.run(global_step)
 
-   n_critic = 3
+   n_critic = 5
 
    print 'Loading data...'
    images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
