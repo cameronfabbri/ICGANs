@@ -30,6 +30,44 @@ step: 49998 loss: 41.4172
 step: 49999 loss: 37.2309
 
 elu --------------------
-
+step: 49983 loss: 36.7912
+step: 49984 loss: 45.3685
+step: 49985 loss: 41.2261
+step: 49986 loss: 38.7323
+step: 49987 loss: 38.9594
+step: 49988 loss: 41.5164
+step: 49989 loss: 48.6145
+step: 49990 loss: 42.5973
+step: 49991 loss: 41.1821
+step: 49992 loss: 38.8563
+step: 49993 loss: 41.2817
+step: 49994 loss: 42.8509
+step: 49995 loss: 38.6946
+step: 49996 loss: 34.8875
+step: 49997 loss: 45.7832
+step: 49998 loss: 48.2873
+step: 49999 loss: 37.1819
 
 swish-------------------
+step: 29032 loss: 38.7492
+step: 29033 loss: 43.2413
+step: 29034 loss: 42.0991
+step: 29035 loss: 42.493
+step: 29036 loss: 37.739
+step: 29037 loss: 40.5036
+step: 29038 loss: 43.876
+step: 29039 loss: 39.8476
+step: 29040 loss: 45.7845
+step: 29041 loss: 43.2224
+step: 29042 loss: 38.5369
+step: 29043 loss: 42.3233
+step: 29044 loss: 47.2276
+step: 29045 loss: 48.216
+step: 29046 loss: 47.0823
+step: 29047 loss: 44.987
+step: 29048 loss: 41.2755
+step: 29049 loss: 35.2739
+step: 29050 loss: 39.123
+step: 29051 loss: 35.9461
+step: 29052 loss: 43.319
+step: 29053 loss: 47.8697
