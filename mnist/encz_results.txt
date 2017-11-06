@@ -1,0 +1,35 @@
+relu --------------------
+step: 49988 loss: 41.4222
+step: 49989 loss: 37.6964
+step: 49990 loss: 41.5076
+step: 49991 loss: 36.8413
+step: 49992 loss: 48.6112
+step: 49993 loss: 39.9216
+step: 49994 loss: 37.2711
+step: 49995 loss: 44.2355
+step: 49996 loss: 41.0065
+step: 49997 loss: 41.9791
+step: 49998 loss: 40.1312
+step: 49999 loss: 38.7952
+
+lrelu --------------------
+step: 49985 loss: 42.8811
+step: 49986 loss: 35.1263
+step: 49987 loss: 36.1641
+step: 49988 loss: 39.4468
+step: 49989 loss: 43.1833
+step: 49990 loss: 38.3175
+step: 49991 loss: 44.9915
+step: 49992 loss: 40.5768
+step: 49993 loss: 38.2534
+step: 49994 loss: 44.3658
+step: 49995 loss: 40.7199
+step: 49996 loss: 41.3247
+step: 49997 loss: 44.2279
+step: 49998 loss: 41.4172
+step: 49999 loss: 37.2309
+
+elu --------------------
+
+
+swish-------------------

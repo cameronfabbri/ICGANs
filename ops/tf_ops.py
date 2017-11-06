@@ -149,7 +149,7 @@ def swish(x):
    Regular relu
 '''
 def relu(x):
-   return tf.nn.relu(x, name)
+   return tf.nn.relu(x)
 
 '''
    Leaky RELU
@@ -205,7 +205,8 @@ def concat_selu(x):
 
 ###### end activation functions #########
 
-
+def elu(x):
+   return tf.nn.elu(x)
 
 
 
