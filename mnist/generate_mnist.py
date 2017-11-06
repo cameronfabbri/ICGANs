@@ -108,6 +108,7 @@ if __name__ == '__main__':
    step = 0
 
    latents = []
+   oimages = []
 
    # stores the image name and true label
    lf = open(OUTPUT_DIR+'labels.txt', 'a')
@@ -122,13 +123,15 @@ if __name__ == '__main__':
       gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
       num = np.argmax(batch_y[0])
-      plt.imsave(OUTPUT_DIR+'image_'+str(step)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
+      #plt.imsave(OUTPUT_DIR+'image_'+str(step)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
 
       latents.append(batch_z[0])
-
-      lf.write('image_'+str(step)+'.png,'+str(num)+'\n')
-
+      oimages.append(gen_imgs)
+      lf.write(str(num)+'\n')
       step += 1
+
    latents = np.asarray(latents)
+   oimages = np.asarray(oimages)
    np.save(OUTPUT_DIR+'latents.npy', latents)
+   np.save(OUTPUT_DIR+'images.npy', oimages)
    lf.close()

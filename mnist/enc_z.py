@@ -23,42 +23,53 @@ sys.path.insert(0, '../ops/')
 from tf_ops import *
 import data_ops
 
+def activate(x, ACTIVATION):
+   if ACTIVATION == 'lrelu': return lrelu(x)
+   if ACTIVATION == 'relu':  return relu(x)
+   if ACTIVATION == 'elu':   return elu(x)
+   if ACTIVATION == 'swish': return swish(x)
+
 '''
    Encoder
 '''
-def encZ(x, BATCH_SIZE):
+def encZ(x, ACTIVATION):
 
-   conv1 = tcl.conv2d(x, 64, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
-   conv1 = lrelu(conv1)
+   conv1 = tcl.conv2d(x, 64, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv1')
+   conv1 = activate(conv1, ACTIVATION)
    
-   conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv2')
-   conv2 = lrelu(conv2)
+   conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv2')
+   conv2 = activate(conv2, ACTIVATION)
 
-   conv3 = tcl.conv2d(conv2, 256, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv3')
-   conv3 = lrelu(conv3)
+   conv3 = tcl.conv2d(conv2, 256, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv3')
+   conv3 = activate(conv3, ACTIVATION)
 
-   conv4 = tcl.conv2d(conv3, 512, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv4')
-   conv4 = lrelu(conv4)
+   conv4 = tcl.conv2d(conv3, 512, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv4')
+   conv4 = activate(conv4, ACTIVATION)
 
-   conv5 = tcl.conv2d(conv4, 1, 4, 1, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv5')
+   conv4_flat = tcl.flatten(conv4)
 
-   print 'input images:',input_images
+   fc1 = tcl.fully_connected(conv4_flat, 4096, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc1')
+   fc1 = activate(fc1, ACTIVATION)
+
+   fc2 = tcl.fully_connected(fc1, 100, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc2')
+   
+   print 'input:',x
    print 'conv1:',conv1
    print 'conv2:',conv2
    print 'conv3:',conv3
    print 'conv4:',conv4
-   print 'conv5:',conv5
+   print 'fc1:',fc1
+   print 'fc2:',fc2
    print 'END ENCODER\n'
-   exit()
-
+   
    tf.add_to_collection('vars', conv1)
    tf.add_to_collection('vars', conv2)
    tf.add_to_collection('vars', conv3)
    tf.add_to_collection('vars', conv4)
-   tf.add_to_collection('vars', conv5)
+   tf.add_to_collection('vars', fc1)
+   tf.add_to_collection('vars', fc2)
 
-   return conv5
-
+   return fc2
 
 
 if __name__ == '__main__':
@@ -68,26 +79,26 @@ if __name__ == '__main__':
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
    parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
-   parser.add_argument('--CHECKPOINT_DIR', required=True,help='checkpoint directory',type=str)
+   parser.add_argument('--ACTIVATION', required=False,help='Activation function',     type=str,default='lrelu')
    a = parser.parse_args()
 
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    MAX_STEPS      = a.MAX_STEPS
    BATCH_SIZE     = a.BATCH_SIZE
-   CHECKPOINT_DIR = a.CHECKPOINT_DIR
+   ACTIVATION     = a.ACTIVATION
 
-   IMAGES_DIR     = CHECKPOINT_DIR+'images/'
+   CHECKPOINT_DIR = 'checkpoints/encoder_z/DATASET_'+DATASET+'/ACTIVATION_'+ACTIVATION+'/'
    
-   try: os.makedirs(IMAGES_DIR)
+   try: os.makedirs(CHECKPOINT_DIR)
    except: pass
 
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
-   images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 28, 28, 1), name='images')
+   images      = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 28, 28, 1), name='images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
 
-   encoded = encZ(images, BATCH_SIZE)
+   encoded = encZ(images, ACTIVATION)
 
    # l2 loss on encoded and actual latent representation, z
    loss = tf.nn.l2_loss(encoded-z)
@@ -121,55 +132,23 @@ if __name__ == '__main__':
 
    print 'Loading data...'
 
-   m_images = glob.glob('output_mnist/*.png')
-   sorted(m_images)
-   # TODO ended here. Need to get all images and their encoded value z
+   mimages = np.load(DATA_DIR+'images.npy')
+   latents = np.load(DATA_DIR+'latents.npy')
 
-
-   train_len = len(annots)
-   test_len  = len(test_annots)
-
+   train_len = len(latents)
    print 'train num:',train_len
 
    while step < MAX_STEPS:
-      
-      start = time.time()
 
-      # train the discriminator
-      for critic_itr in range(n_critic):
-         idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-         batch_y      = annots[idx]
-         batch_images = images[idx]
-         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
-      
-      # now train the generator once! use normal distribution, not uniform!!
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-      batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-      batch_y      = annots[idx]
-      batch_images = images[idx]
-      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+      batch_images = mimages[idx]
+      batch_z      = latents[idx]
 
-      # now get all losses and summary *without* performing a training step - for tensorboard and printing
-      D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
-      summary_writer.add_summary(summary, step)
-
-      print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
+      _,l = sess.run([train_op, loss], feed_dict={images:batch_images, z:batch_z})
+      print 'step:',step,'loss:',l
       step += 1
     
       if step%500 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
-
-         idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
-         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-         batch_y      = test_annots[idx]
-         batch_images = test_images[idx]
-         gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
-
-         num = np.argmax(batch_y[0])
-         plt.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
-
-
-
