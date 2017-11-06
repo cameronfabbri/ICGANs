@@ -12,3 +12,4 @@ log*
 *.pkl
 output/*
 output*
+*.npy
