@@ -196,8 +196,9 @@ if __name__ == '__main__':
    n_critic = 5
 
    print 'Loading data...'
-   images, annots = data_ops.load_celeba(DATA_DIR, mode=MODE)
-   test_images, test_annots = data_ops.load_celeba(DATA_DIR, mode='test')
+   #images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR, mode=MODE)
+   images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
+   #test_images, test_annots = data_ops.load_celeba(DATA_DIR, mode='test')
 
    train_len = len(annots)
    test_len  = len(test_annots)
@@ -246,7 +247,7 @@ if __name__ == '__main__':
       print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
-      if step%500 == 0:
+      if step%2 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
@@ -267,7 +268,7 @@ if __name__ == '__main__':
          gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
 
          num = np.argmax(batch_y[0])
-         plt.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
+         misc.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
 
 
 
