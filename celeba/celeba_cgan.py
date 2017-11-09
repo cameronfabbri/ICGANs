@@ -203,6 +203,7 @@ if __name__ == '__main__':
    test_len  = len(test_annots)
 
    print 'train num:',train_len
+   print 'test num:',test_len
 
    while step < MAX_STEPS:
       
