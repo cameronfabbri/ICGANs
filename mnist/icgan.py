@@ -163,7 +163,7 @@ if __name__ == '__main__':
       #print 'new_y:',new_y
       
       new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
-      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', np.squeeze(new_gen))
+      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', np.squeeze(new_gen), cmap=cm.gray)
 
       #print 'should be a',np.argmax(new_y[0]),'!'
       #print
