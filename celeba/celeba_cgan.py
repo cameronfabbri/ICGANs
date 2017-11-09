@@ -38,7 +38,7 @@ def netG(z, y, BATCH_SIZE):
    conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
    conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
    conv3 = tcl.convolution2d_transpose(conv2, 64, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
-   conv4 = tcl.convolution2d_transpose(conv3, 3, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv4')
+   conv4 = tcl.convolution2d_transpose(conv3, 3, 5, 2, activation_fn=tf.nn.tanh, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv4')
 
    print 'z:',z
    print 'conv1:',conv1
@@ -196,9 +196,7 @@ if __name__ == '__main__':
    n_critic = 5
 
    print 'Loading data...'
-   #images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR, mode=MODE)
    images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
-   #test_images, test_annots = data_ops.load_celeba(DATA_DIR, mode='test')
 
    train_len = len(annots)
    test_len  = len(test_annots)
@@ -247,7 +245,7 @@ if __name__ == '__main__':
       print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
-      if step%500 == 0:
+      if step%1 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
@@ -276,14 +274,14 @@ if __name__ == '__main__':
 
          num = 0
          for img,atr in zip(gen_imgs, batch_y):
-            img = np.uint8(255.0*(img+1.0))
+            #img = np.uint8(255.0*(img+1.0))
             img = (img+1.)
             img *= 127.5
             img = np.clip(img, 0, 255).astype(np.uint8)
             img = np.reshape(img, (64, 64, -1))
-            
             misc.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', img)
             with open(IMAGES_DIR+'attrs.txt', 'a') as f:
                f.write('step_'+str(step)+'_num_'+str(num)+','+str(atr)+'\n')
             num += 1
             if num == 5: break
+         exit()
