@@ -143,6 +143,7 @@ def load_celeba(data_dir, mode='train'):
    
    len_train = len(train_ids)
    len_test  = len(test_ids)
+   len_val   = len(val_ids)
 
    # load up annotations
    '''
@@ -196,6 +197,7 @@ def load_celeba(data_dir, mode='train'):
    count = 0
    train_attr = []
    test_attr = []
+   image_attr = {}
    print 'Loading attributes...'
    with open(data_dir+'list_attr_celeba.txt', 'r') as f:
       for line in tqdm(f):
@@ -207,40 +209,25 @@ def load_celeba(data_dir, mode='train'):
          if image_id in train_ids and mode=='train':
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
-            train_attr.append(attr)
+            #train_attr.append(attr)
+            image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
+         i+=1
          if image_id in test_ids and mode=='test':
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
             test_attr.append(attr)
          count += 1
+         if i == 100: break
+   
+   train_images = image_attr.keys()
+   train_attrs  = image_attr.values()
 
-   train_images = np.empty((len_train, 64, 64, 3), dtype=np.float32)
-   test_images  = np.empty((len_test, 64, 64, 3), dtype=np.float32)
-
-   images = glob.glob(data_dir+'img_align_celeba_resized/*.jpg')
-   sorted(images)
-
-   i = 0
-   j = 0
-   count = 0
-   print 'Loading images...'
-   for image in tqdm(images):
-      image_id = ntpath.basename(image)
-      if image_id in train_ids and mode=='train':
-         img = misc.imread(image)
-         img = (img/127.5)-1.0
-         train_images[i,...] = img
-         i+=1
-      if image_id in test_ids and mode=='test':
-         img = misc.imread(image)
-         img = (img/127.5)-1.0
-         train_images[j,...] = img
-         j+=1
-      count += 1
-
-   if mode == 'train': return np.asarray(train_images), np.asarray(train_attr)
+   if mode == 'train': return np.asarray(train_images), np.asarray(train_attrs)
    if mode == 'test': return np.asarray(train_images), np.asarray(train_attr)
    return 'mode error'
+
+def normalize(image):
+   return (image/127.5)-1.0
 
 '''
    Converts a single image from [0,255] range to [-1,1]
