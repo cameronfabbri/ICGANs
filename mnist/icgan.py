@@ -70,6 +70,7 @@ if __name__ == '__main__':
    parser.add_argument('--DATASET',        required=False,help='The dataset to use',              type=str,default='mnist')
    parser.add_argument('--DATA_DIR',       required=False,help='Directory where data is',         type=str,default='./')
    parser.add_argument('--OUT_DIR',        required=True,help='Directory to save data in',        type=str)
+   parser.add_argument('--NUM_GEN',        required=True,help='Directory to save data in',        type=str)
    a = parser.parse_args()
 
    CHECKPOINT_DIR = a.CHECKPOINT_DIR
@@ -135,32 +136,30 @@ if __name__ == '__main__':
    original_image = mimages[idx]
    label          = labels[idx]
    z_             = latents[idx]
+   #z_             = np.random.normal(-1.0, 1.0, size=[1, 100]).astype(np.float32)
 
    reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
    
    plt.imsave(IMAGES_DIR+'original.png', np.squeeze(original_image))
    plt.imsave(IMAGES_DIR+'reconstruction.png', np.squeeze(reconstruction))
 
-   #new_y = np.expand_dims(np.zeros((10)),0)
-   new_y = np.expand_dims(np.ones((10)),0)
+   new_y = np.expand_dims(np.zeros((10)),0)
    r = random.randint(0,9)
    new_y[0][r] = 1
    true_index = np.argmax(label[0])
    new_index  = np.argmax(new_y[0])
 
-   '''
    while new_index == true_index:
       new_y = np.expand_dims(np.zeros((10)),0)
       r = random.randint(0,9)
       true_index = np.argmax(label[0])
       new_index  = np.argmax(new_y[0])
       new_y[0][r] = 1
-   '''
    print 'label:',label
    print 'new_y:',new_y
    
    new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
-   plt.imsave(IMAGES_DIR+'new.png', np.squeeze(original_image))
+   plt.imsave(IMAGES_DIR+'new.png', np.squeeze(new_gen))
 
    print 'should be a',np.argmax(new_y[0]),'!'
 
