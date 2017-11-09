@@ -12,7 +12,6 @@ import random
 import ntpath
 import time
 import sys
-import cv2
 import os
 
 sys.path.insert(0, '../ops/')
@@ -218,7 +217,7 @@ if __name__ == '__main__':
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
          i = 0
          for img in batch_img:
-            img = data_ops.normalize(cv2.imread(img))
+            img = data_ops.normalize(misc.imread(img))
             batch_images[i, ...] = img
             i+=1
          sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
@@ -232,7 +231,7 @@ if __name__ == '__main__':
       # gotta read the batch of images
       i = 0
       for img in batch_img:
-         img = data_ops.normalize(cv2.imread(img))
+         img = data_ops.normalize(misc.imread(img))
          batch_images[i, ...] = img
          i+=1
 
@@ -245,12 +244,11 @@ if __name__ == '__main__':
       print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
-      if step%500 == 0:
+      if step%50 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
 
-         '''
          idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
          batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = test_annots[idx]
@@ -262,10 +260,11 @@ if __name__ == '__main__':
          batch_y      = annots[idx]
          batch_img    = images[idx]
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
+         '''
 
          i = 0
          for img in batch_img:
-            img = data_ops.normalize(cv2.imread(img))
+            img = data_ops.normalize(misc.imread(img))
             batch_images[i, ...] = img
             i+=1
 
