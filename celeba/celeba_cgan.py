@@ -108,7 +108,7 @@ if __name__ == '__main__':
    parser.add_argument('--MODE',       required=False,help='train/test/val',          type=str,default='train')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=200000)
+   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    a = parser.parse_args()
 

@@ -10,6 +10,7 @@ from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+import cPickle as pickle
 from tqdm import tqdm
 import numpy as np
 import argparse
@@ -53,11 +54,6 @@ def netG(z, y, BATCH_SIZE):
    print
    print 'END G'
    print
-   tf.add_to_collection('vars', z)
-   tf.add_to_collection('vars', conv1)
-   tf.add_to_collection('vars', conv2)
-   tf.add_to_collection('vars', conv3)
-   tf.add_to_collection('vars', conv4)
    return conv4
 
 if __name__ == '__main__':
@@ -65,14 +61,16 @@ if __name__ == '__main__':
    parser = argparse.ArgumentParser()
    parser.add_argument('--CHECKPOINT_DIR', required=True,help='checkpoint directory',type=str)
    parser.add_argument('--DATASET',        required=False,help='The DATASET to use',      type=str,default='celeba')
-   parser.add_argument('--OUTPUT_DIR',     required=False,help='Directory where data is', type=str,default='./')
+   parser.add_argument('--DATA_DIR',       required=False,help='Directory where data is', type=str,default='./')
+   parser.add_argument('--OUTPUT_DIR',     required=False,help='Directory to save data', type=str,default='./')
    parser.add_argument('--MAX_GEN',        required=False,help='Maximum training steps',  type=int,default=100000)
    a = parser.parse_args()
 
    CHECKPOINT_DIR = a.CHECKPOINT_DIR
    DATASET        = a.DATASET
-   OUTPUT_DIR     = a.OUTPUT_DIR+'/'
+   OUTPUT_DIR     = a.OUTPUT_DIR
    MAX_GEN        = a.MAX_GEN
+   DATA_DIR       = a.DATA_DIR
 
    BATCH_SIZE = 1
 
@@ -81,9 +79,8 @@ if __name__ == '__main__':
 
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
-   real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 28, 28, 1), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 10), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 15), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -106,38 +103,33 @@ if __name__ == '__main__':
          exit()
    
    print 'Loading data...'
-   images, annots = data_ops.load_mnist('./', mode='test')
-   test_images, test_annots = data_ops.load_mnist('./', mode='test')
+   images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
 
    test_len = len(test_annots)
 
    step = 0
 
-   latents = []
-   oimages = []
-
-   # stores the image name and true label
-   lf = open(OUTPUT_DIR+'labels.txt', 'a')
+   '''
+      Save the image to a folder
+      write to a pickle file {image_name:label}
+   '''
+   info_dict = {}
 
    print 'generating data...'
-   #while step < MAX_GEN:
    for step in tqdm(range(MAX_GEN)):
       idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
-      batch_z = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
-      batch_y      = annots[idx]
-      batch_images = images[idx]
-      gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
+      batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+      batch_y      = test_annots[idx]
 
-      num = np.argmax(batch_y[0])
-      #plt.imsave(OUTPUT_DIR+'image_'+str(step)+'.png', np.squeeze(gen_imgs), cmap=cm.gray)
-
-      latents.append(batch_z[0])
-      oimages.append(gen_imgs)
-      lf.write(str(num)+'\n')
+      gen_imgs   = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y})[0][0]
+      image_name = OUTPUT_DIR+'img_'+str(step)+'.png'
+      info_dict[image_name] = [batch_y, batch_z]
+      misc.imsave(image_name, gen_imgs)
       step += 1
 
-   latents = np.asarray(latents)
-   oimages = np.asarray(oimages)
-   np.save(OUTPUT_DIR+'latents.npy', latents)
-   np.save(OUTPUT_DIR+'images.npy', oimages)
-   lf.close()
+   # write out dictionary to pickle file
+   p = open(OUTPUT_DIR+'data.pkl', 'wb')
+   data = pickle.dumps(info_dict)
+   p.write(data)
+   p.close()
+   exit()
