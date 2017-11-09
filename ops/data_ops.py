@@ -202,11 +202,11 @@ def load_celeba(data_dir, mode='train'):
             dum += 1
             continue
          image_id = line[0]
-         if image_id in train_ids and mode=='train':
+         if image_id in train_ids:
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
             train_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
-         if image_id in test_ids and mode=='test':
+         if image_id in test_ids:
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
             test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
