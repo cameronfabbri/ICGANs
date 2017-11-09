@@ -8,6 +8,7 @@ from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+import cPickle as pickle
 import numpy as np
 import argparse
 import random
@@ -95,7 +96,7 @@ if __name__ == '__main__':
 
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
-   images      = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 28, 28, 1), name='images')
+   images      = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
    lr          = tf.placeholder(tf.float32, name='learning_rate')
 
@@ -132,25 +133,40 @@ if __name__ == '__main__':
    step = sess.run(global_step)
 
    print 'Loading data...'
+   pkl_file = open(DATA_DIR+'data.pkl')
+   
+   # dictionary of [image_name] = [batch_y,batch_z]
+   data           = pickle.load(pkl_file)
+   images_        = data.keys()
+   t              = data.values()
+   annots,latents = zip(*t)
+   train_len      = len(latents)
+   
+   latents = np.asarray(latents)
+   annots  = np.asarray(annots)
+   images_ = np.asarray(images_)
 
-   mimages = np.load(DATA_DIR+'images.npy')
-   latents = np.load(DATA_DIR+'latents.npy')
-
-   train_len = len(latents)
    print 'train num:',train_len
 
-   lr_ = 1e-4
 
+   lr_ = 1e-4
    while step < MAX_STEPS:
 
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-      batch_images = mimages[idx]
-      batch_z      = latents[idx]
+      batch_z      = np.squeeze(latents[idx])
+      batch_y      = np.squeeze(annots[idx])
+      batch_img    = images_[idx]
+      batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
+      i = 0
+      for img in batch_img:
+         img = data_ops.normalize(misc.imread(img))
+         batch_images[i, ...] = img
+         i+=1
 
-      if step > 25000: lr_ = 1e-5
+      if step > 50000: lr_ = 1e-5
 
       _,l = sess.run([train_op, loss], feed_dict={images:batch_images, z:batch_z, lr:lr_})
-      print 'step:',step,'loss:',l
+      if step%10==0: print 'step:',step,'loss:',l
       step += 1
     
    print 'Saving model...'
