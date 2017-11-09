@@ -42,17 +42,23 @@ def netG(z, y, BATCH_SIZE):
    
    conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
    conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
-   conv3 = tcl.convolution2d_transpose(conv2, 1, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
-   conv3 = conv3[:,:28,:28,:]
+   conv3 = tcl.convolution2d_transpose(conv2, 64, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
+   conv4 = tcl.convolution2d_transpose(conv3, 3, 5, 2, activation_fn=tf.nn.tanh, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv4')
 
    print 'z:',z
    print 'conv1:',conv1
    print 'conv2:',conv2
    print 'conv3:',conv3
+   print 'conv4:',conv4
    print
    print 'END G'
    print
-   return conv3
+   tf.add_to_collection('vars', z)
+   tf.add_to_collection('vars', conv1)
+   tf.add_to_collection('vars', conv2)
+   tf.add_to_collection('vars', conv3)
+   tf.add_to_collection('vars', conv4)
+   return conv4
 
 if __name__ == '__main__':
 
