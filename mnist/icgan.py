@@ -143,8 +143,8 @@ if __name__ == '__main__':
 
       reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
       
-      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', np.squeeze(original_image))
-      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', np.squeeze(reconstruction))
+      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', np.squeeze(original_image), cmap=cm.gray)
+      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', np.squeeze(reconstruction), cmap=cm.gray)
 
       new_y = np.expand_dims(np.zeros((10)),0)
       r = random.randint(0,9)
