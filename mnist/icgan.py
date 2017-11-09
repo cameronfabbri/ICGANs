@@ -17,6 +17,7 @@ from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+from tqdm import tqdm
 import numpy as np
 import argparse
 import random
@@ -74,10 +75,10 @@ if __name__ == '__main__':
    a = parser.parse_args()
 
    CHECKPOINT_DIR = a.CHECKPOINT_DIR
-   DATASET  = a.DATASET
-   DATA_DIR = a.DATA_DIR
-   OUT_DIR  = a.OUT_DIR
-
+   DATASET        = a.DATASET
+   DATA_DIR       = a.DATA_DIR
+   OUT_DIR        = a.OUT_DIR
+   NUM_GEN        = a.NUM_GEN
    IMAGES_DIR     = OUT_DIR+'images/'
    
    try: os.makedirs(IMAGES_DIR)
@@ -122,46 +123,50 @@ if __name__ == '__main__':
             labels.append(zero)
    labels = np.asarray(labels)
    test_len = len(labels)
-
+   print 'Done'
+   print
    '''
       load up images, latents, and labels
       save out original image as original.png
       save out reconstruction as reconstruction.png
       mess with the label and save it out as new.png
    '''
-   
-   # get into form to pass to network
-   idx = np.random.choice(np.arange(test_len), 1, replace=False)
+   print 'Generating data...'
+   for n in tqdm(range(int(NUM_GEN))):
 
-   original_image = mimages[idx]
-   label          = labels[idx]
-   z_             = latents[idx]
-   #z_             = np.random.normal(-1.0, 1.0, size=[1, 100]).astype(np.float32)
+      # get into form to pass to network
+      idx = np.random.choice(np.arange(test_len), 1, replace=False)
 
-   reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
-   
-   plt.imsave(IMAGES_DIR+'original.png', np.squeeze(original_image))
-   plt.imsave(IMAGES_DIR+'reconstruction.png', np.squeeze(reconstruction))
+      original_image = mimages[idx]
+      label          = labels[idx]
+      z_             = latents[idx]
 
-   new_y = np.expand_dims(np.zeros((10)),0)
-   r = random.randint(0,9)
-   new_y[0][r] = 1
-   true_index = np.argmax(label[0])
-   new_index  = np.argmax(new_y[0])
+      reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
+      
+      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', np.squeeze(original_image))
+      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', np.squeeze(reconstruction))
 
-   while new_index == true_index:
       new_y = np.expand_dims(np.zeros((10)),0)
       r = random.randint(0,9)
+      new_y[0][r] = 1
       true_index = np.argmax(label[0])
       new_index  = np.argmax(new_y[0])
-      new_y[0][r] = 1
-   print 'label:',label
-   print 'new_y:',new_y
-   
-   new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
-   plt.imsave(IMAGES_DIR+'new.png', np.squeeze(new_gen))
 
-   print 'should be a',np.argmax(new_y[0]),'!'
+      while new_index == true_index:
+         new_y = np.expand_dims(np.zeros((10)),0)
+         r = random.randint(0,9)
+         new_y[0][r] = 1
+         true_index = np.argmax(label[0])
+         new_index  = np.argmax(new_y[0])
+
+      #print 'label:',label
+      #print 'new_y:',new_y
+      
+      new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
+      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', np.squeeze(new_gen))
+
+      #print 'should be a',np.argmax(new_y[0]),'!'
+      #print
 
    
 
