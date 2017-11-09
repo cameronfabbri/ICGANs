@@ -191,13 +191,9 @@ def load_celeba(data_dir, mode='train'):
       only considering: bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
       4,5,8,9,11,15,16,17,18,20,22,24,31,35,37
    '''
-   i = 0
-   j = 0
    dum = 0
-   count = 0
-   train_attr = []
-   test_attr = []
-   image_attr = {}
+   train_image_attr = {}
+   test_image_attr  = {}
    print 'Loading attributes...'
    with open(data_dir+'list_attr_celeba.txt', 'r') as f:
       for line in tqdm(f):
@@ -209,21 +205,22 @@ def load_celeba(data_dir, mode='train'):
          if image_id in train_ids and mode=='train':
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
-            #train_attr.append(attr)
-            image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
-         i+=1
+            train_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
          if image_id in test_ids and mode=='test':
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
-            test_attr.append(attr)
-         count += 1
-         if i == 100: break
+            test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
    
-   train_images = image_attr.keys()
-   train_attrs  = image_attr.values()
+   if mode == 'train':
+      train_images = train_image_attr.keys()
+      train_attrs  = train_image_attr.values()
+      return np.asarray(train_images), np.asarray(train_attrs)
 
-   if mode == 'train': return np.asarray(train_images), np.asarray(train_attrs)
-   if mode == 'test': return np.asarray(train_images), np.asarray(train_attr)
+   if mode == 'test':
+      test_images = test_image_attr.keys()
+      test_attrs  = test_image_attr.values()
+      return np.asarray(test_images), np.asarray(test_attrs)
+
    return 'mode error'
 
 def normalize(image):
