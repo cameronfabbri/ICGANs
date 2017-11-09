@@ -210,7 +210,12 @@ def load_celeba(data_dir, mode='train'):
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
             test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
-   
+      
+   train_images = train_image_attr.keys()
+   train_attrs  = train_image_attr.values()
+   test_images  = test_image_attr.keys()
+   test_attrs   = test_image_attr.values()
+   '''
    if mode == 'train':
       train_images = train_image_attr.keys()
       train_attrs  = train_image_attr.values()
@@ -220,8 +225,8 @@ def load_celeba(data_dir, mode='train'):
       test_images = test_image_attr.keys()
       test_attrs  = test_image_attr.values()
       return np.asarray(test_images), np.asarray(test_attrs)
-
-   return 'mode error'
+   '''
+   return np.asarray(train_images), np.asarray(train_attrs), np.asarray(test_images), np.asarray(test_attrs)
 
 def normalize(image):
    return (image/127.5)-1.0
