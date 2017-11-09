@@ -247,7 +247,7 @@ if __name__ == '__main__':
       print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
-      if step%2 == 0:
+      if step%500 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
@@ -257,18 +257,28 @@ if __name__ == '__main__':
          batch_y      = test_annots[idx]
          batch_img    = test_images[idx]
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
-         # gotta read the batch of images
+         '''
+         idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
+         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_y      = annots[idx]
+         batch_img    = images[idx]
+         batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
+         '''
+
          i = 0
          for img in batch_img:
             img = data_ops.normalize(cv2.imread(img))
             batch_images[i, ...] = img
             i+=1
 
+         # comes out as (1, batch, 64, 64, 3), so squeezing it
+         gen_imgs = np.squeeze(np.asarray(sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})))
 
-         gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})[0][0]
-
-         num = np.argmax(batch_y[0])
-         misc.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', gen_imgs)
-
-
-
+         num = 0
+         for img,atr in zip(gen_imgs, batch_y):
+            img = np.uint8(255.0*(img+1.0))
+            misc.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', img)
+            with open(IMAGES_DIR+'attrs.txt', 'a') as f:
+               f.write('step_'+str(step)+'_num_'+str(num)+','+str(atr)+'\n')
+            num += 1
+            if num == 5: break

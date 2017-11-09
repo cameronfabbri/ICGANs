@@ -194,6 +194,7 @@ def load_celeba(data_dir, mode='train'):
    dum = 0
    train_image_attr = {}
    test_image_attr  = {}
+   i = 0
    print 'Loading attributes...'
    with open(data_dir+'list_attr_celeba.txt', 'r') as f:
       for line in tqdm(f):
@@ -210,7 +211,10 @@ def load_celeba(data_dir, mode='train'):
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
             test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
-      
+
+         i += 1
+         if i == 100: break
+
    train_images = train_image_attr.keys()
    train_attrs  = train_image_attr.values()
    test_images  = test_image_attr.keys()
