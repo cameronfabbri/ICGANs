@@ -252,6 +252,7 @@ if __name__ == '__main__':
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
 
+         '''
          idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
          batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = test_annots[idx]
@@ -263,7 +264,6 @@ if __name__ == '__main__':
          batch_y      = annots[idx]
          batch_img    = images[idx]
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
-         '''
 
          i = 0
          for img in batch_img:
@@ -277,6 +277,11 @@ if __name__ == '__main__':
          num = 0
          for img,atr in zip(gen_imgs, batch_y):
             img = np.uint8(255.0*(img+1.0))
+            img = (img+1.)
+            img *= 127.5
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            img = np.reshape(img, (64, 64, -1))
+            
             misc.imsave(IMAGES_DIR+'step_'+str(step)+'_num_'+str(num)+'.png', img)
             with open(IMAGES_DIR+'attrs.txt', 'a') as f:
                f.write('step_'+str(step)+'_num_'+str(num)+','+str(atr)+'\n')

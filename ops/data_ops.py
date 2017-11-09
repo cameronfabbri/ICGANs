@@ -213,7 +213,7 @@ def load_celeba(data_dir, mode='train'):
             test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
 
          i += 1
-         #if i == 100: break
+         if i == 100: break
 
    train_images = train_image_attr.keys()
    train_attrs  = train_image_attr.values()
