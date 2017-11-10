@@ -17,6 +17,7 @@ from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+import cPickle as pickle
 from tqdm import tqdm
 import numpy as np
 import argparse
@@ -49,17 +50,18 @@ def netG(z, y, BATCH_SIZE):
    
    conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
    conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
-   conv3 = tcl.convolution2d_transpose(conv2, 1, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
-   conv3 = conv3[:,:28,:28,:]
+   conv3 = tcl.convolution2d_transpose(conv2, 64, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
+   conv4 = tcl.convolution2d_transpose(conv3, 3, 5, 2, activation_fn=tf.nn.tanh, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv4')
 
    print 'z:',z
    print 'conv1:',conv1
    print 'conv2:',conv2
    print 'conv3:',conv3
+   print 'conv4:',conv4
    print
    print 'END G'
    print
-   return conv3
+   return conv4
 
 
 if __name__ == '__main__':
@@ -79,14 +81,14 @@ if __name__ == '__main__':
    DATA_DIR       = a.DATA_DIR
    OUT_DIR        = a.OUT_DIR
    NUM_GEN        = a.NUM_GEN
-   IMAGES_DIR     = OUT_DIR+'images/'
+   IMAGES_DIR     = OUT_DIR
    
    try: os.makedirs(IMAGES_DIR)
    except: pass
 
    # placeholders for data going into the network
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 10), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 15), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -117,32 +119,51 @@ if __name__ == '__main__':
       a bunch of test images. Save out the latent vectors and path to image,
       no need to save the image again.
    '''
-   
 
-   exit()
+   pkl_file = open(DATA_DIR+'data.pkl')
    
+   data     = pickle.load(pkl_file)
+   images_  = data.keys()
+   t        = data.values()
+
+   encodings, labels = zip(*t)
+
+   test_len = len(images_)
+
+   images_ = np.asarray(images_)
+   encodings = np.asarray(encodings)
+   labels = np.asarray(labels)
+
    print 'Done'
    print
-   '''
-      load up images, latents, and labels
-      save out original image as original.png
-      save out reconstruction as reconstruction.png
-      mess with the label and save it out as new.png
-   '''
+   
    print 'Generating data...'
    for n in tqdm(range(int(NUM_GEN))):
 
-      # get into form to pass to network
       idx = np.random.choice(np.arange(test_len), 1, replace=False)
 
-      original_image = mimages[idx]
+      original_image = images_[idx]
       label          = labels[idx]
-      z_             = latents[idx]
+      z_             = encodings[idx]
+
+      original_image = misc.imread(original_image[0])
+      original_image = data_ops.normalize(original_image)
 
       reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
+
+      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', original_image)
+      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', reconstruction)
+
+      print label
+
+      # bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
+      new_y = np.asarray([[-1., -1., -1., -1.,  -1., -1., -1., -1.,  -1., -1., -1.,  1.,  -1., -1., -1.]])
+      print new_y
       
-      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', np.squeeze(original_image))
-      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', np.squeeze(reconstruction))
+      new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
+      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', new_image)
+
+      exit()
 
       new_y = np.expand_dims(np.zeros((10)),0)
       r = random.randint(0,9)

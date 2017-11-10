@@ -4,6 +4,7 @@
 
 '''
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
@@ -88,6 +89,9 @@ if __name__ == '__main__':
    DATA_DIR       = a.DATA_DIR
    OUTPUT_DIR     = a.OUTPUT_DIR
    ACTIVATION     = a.ACTIVATION
+   
+   try: os.makedirs(OUTPUT_DIR)
+   except: pass
 
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
@@ -122,14 +126,19 @@ if __name__ == '__main__':
    test_len = len(test_annots)
    print 'test num:',test_len
 
+   info = {}
+
    # want to write out a file with the image path and z vector
-   for image_path in test_images:
+   for image_path,label in tqdm(zip(test_images, test_annots)):
 
-      img          = misc.imread(image_path).astype('float32')
-      batch_images = np.expand_dims(img, 0)
+      img              = misc.imread(image_path).astype('float32')
+      batch_images     = np.expand_dims(img, 0)
+      encoding         = sess.run([encoded], feed_dict={images:batch_images})[0][0]
+      info[image_path] = [encoding, label]
 
-      encoding = sess.run([encoded], feed_dict={images:batch_images})[0][0]
-      print image_path
-      print encoding
-      exit()
-    
+   # write out dictionary to pickle file
+   p = open(OUTPUT_DIR+'data.pkl', 'wb')
+   data = pickle.dumps(info)
+   p.write(data)
+   p.close()
+
