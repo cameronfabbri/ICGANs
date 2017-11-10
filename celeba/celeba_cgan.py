@@ -208,6 +208,12 @@ if __name__ == '__main__':
    sess  = tf.Session()
    sess.run(init)
 
+   # write losses to tf summary to view in tensorboard
+   try: tf.summary.scalar('d_loss', tf.reduce_mean(errD))
+   except:pass
+   try: tf.summary.scalar('g_loss', tf.reduce_mean(errG))
+   except:pass
+
    summary_writer = tf.summary.FileWriter(CHECKPOINT_DIR+'/'+'logs/', graph=tf.get_default_graph())
 
    tf.add_to_collection('G_train_op', G_train_op)
