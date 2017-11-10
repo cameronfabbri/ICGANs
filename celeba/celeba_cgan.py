@@ -145,13 +145,16 @@ if __name__ == '__main__':
    # Important! no initial activations done on the last layer for D, so if one method needs an activation, do it
    e = 1e-12
    if LOSS == 'gan':
-      errD_real = tf.nn.sigmoid(errD_real)
+      errD_real = tf.n.sigmoid(errD_real)
       errD_fake = tf.nn.sigmoid(errD_fake)
       errG = tf.reduce_mean(-tf.log(errD_fake + e))
       errD = tf.reduce_mean(-(tf.log(errD_real+e)+tf.log(1-errD_fake+e)))
 
-   #if LOSS == 'lsgan':
-      
+   if LOSS == 'lsgan':
+      errD_real = tf.n.sigmoid(errD_real)
+      errD_fake = tf.nn.sigmoid(errD_fake)
+      errD = 0.5*(tf.square(errD_real - 1)) + 0.5*(tf.square(errD_fake))
+      errG = 0.5*(tf.square(errD_fake - 1))
 
    if LOSS == 'wgan':
       # cost functions
@@ -178,15 +181,22 @@ if __name__ == '__main__':
    g_vars = [var for var in t_vars if 'g_' in var.name]
 
    if LOSS == 'wgan':
-      beta1 = 0.0
-      beta2 = 0.9
-      lr = 1e-4
       n_critic = 5
-   if LOSS == 'gan':
-      beta1 = 0.9
-      beta2 = 0.999
-      lr = 2e-5
+      beta1    = 0.0
+      beta2    = 0.9
+      lr       = 1e-4
+
+   if LOSS = 'lsgan':
       n_critic = 1
+      beta1    = 0.5
+      beta2    = 0.999
+      lr       = 0.001
+
+   if LOSS == 'gan':
+      n_critic = 1
+      beta1    = 0.9
+      beta2    = 0.999
+      lr       = 2e-5
 
    # optimize G
    G_train_op = tf.train.AdamOptimizer(learning_rate=lr,beta1=beta1,beta2=beta2).minimize(errG, var_list=g_vars, global_step=global_step)
