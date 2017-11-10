@@ -55,9 +55,9 @@ def netG(z, y, BATCH_SIZE):
    return conv4
 
 '''
-   Discriminator network. No batch norm
+   Discriminator network. No batch norm when using WGAN
 '''
-def netD(input_images, y, BATCH_SIZE, reuse=False):
+def netD(input_images, y, BATCH_SIZE, LOSS, reuse=False):
 
    print 'DISCRIMINATOR reuse = '+str(reuse)
    sc = tf.get_variable_scope()
@@ -70,15 +70,19 @@ def netD(input_images, y, BATCH_SIZE, reuse=False):
       input_ = conv_cond_concat(input_images, y)
 
       conv1 = tcl.conv2d(input_, 64, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
+      if LOSS != 'wgan': conv1 = tcl.batch_norm(conv1)
       conv1 = lrelu(conv1)
       
       conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv2')
+      if LOSS != 'wgan': conv2 = tcl.batch_norm(conv2)
       conv2 = lrelu(conv2)
 
       conv3 = tcl.conv2d(conv2, 256, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv3')
+      if LOSS != 'wgan': conv3 = tcl.batch_norm(conv3)
       conv3 = lrelu(conv3)
 
       conv4 = tcl.conv2d(conv3, 512, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv4')
+      if LOSS != 'wgan': conv4 = tcl.batch_norm(conv4)
       conv4 = lrelu(conv4)
 
       conv5 = tcl.conv2d(conv4, 1, 4, 1, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv5')
@@ -119,7 +123,7 @@ if __name__ == '__main__':
    BATCH_SIZE     = a.BATCH_SIZE
    MAX_STEPS      = a.MAX_STEPS
 
-   CHECKPOINT_DIR = 'checkpoints/DATASET_'+DATASET+'/LOSS_'+LOSS+'/'
+   CHECKPOINT_DIR = 'checkpoints/gan/DATASET_'+DATASET+'/LOSS_'+LOSS+'/'
    IMAGES_DIR     = CHECKPOINT_DIR+'images/'
    
    try: os.makedirs(IMAGES_DIR)
@@ -135,21 +139,33 @@ if __name__ == '__main__':
    gen_images = netG(z, y, BATCH_SIZE)
 
    # get the output from D on the real and fake data
-   errD_real = netD(real_images, y, BATCH_SIZE)
-   errD_fake = netD(gen_images, y, BATCH_SIZE, reuse=True)
+   errD_real = netD(real_images, y, BATCH_SIZE, LOSS)
+   errD_fake = netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
 
-   # cost functions
-   errD = tf.reduce_mean(errD_real) - tf.reduce_mean(errD_fake)
-   errG = tf.reduce_mean(errD_fake)
+   # Important! no initial activations done on the last layer for D, so if one method needs an activation, do it
+   e = 1e-12
+   if LOSS == 'gan':
+      errD_real = tf.nn.sigmoid(errD_real)
+      errD_fake = tf.nn.sigmoid(errD_fake)
+      errG = tf.reduce_mean(-tf.log(errD_fake + e))
+      errD = tf.reduce_mean(-(tf.log(errD_real+e)+tf.log(1-errD_fake+e)))
 
-   # gradient penalty
-   epsilon = tf.random_uniform([], 0.0, 1.0)
-   x_hat = real_images*epsilon + (1-epsilon)*gen_images
-   d_hat = netD(x_hat, y, BATCH_SIZE, reuse=True)
-   gradients = tf.gradients(d_hat, x_hat)[0]
-   slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-   gradient_penalty = 10*tf.reduce_mean((slopes-1.0)**2)
-   errD += gradient_penalty
+   #if LOSS == 'lsgan':
+      
+
+   if LOSS == 'wgan':
+      # cost functions
+      errD = tf.reduce_mean(errD_real) - tf.reduce_mean(errD_fake)
+      errG = tf.reduce_mean(errD_fake)
+
+      # gradient penalty
+      epsilon = tf.random_uniform([], 0.0, 1.0)
+      x_hat = real_images*epsilon + (1-epsilon)*gen_images
+      d_hat = netD(x_hat, y, BATCH_SIZE, reuse=True)
+      gradients = tf.gradients(d_hat, x_hat)[0]
+      slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+      gradient_penalty = 10*tf.reduce_mean((slopes-1.0)**2)
+      errD += gradient_penalty
 
    # tensorboard summaries
    tf.summary.scalar('d_loss', errD)
@@ -161,11 +177,21 @@ if __name__ == '__main__':
    d_vars = [var for var in t_vars if 'd_' in var.name]
    g_vars = [var for var in t_vars if 'g_' in var.name]
 
-   # optimize G
-   G_train_op = tf.train.AdamOptimizer(learning_rate=1e-4,beta1=0.0,beta2=0.9).minimize(errG, var_list=g_vars, global_step=global_step)
+   if LOSS == 'wgan':
+      beta1 = 0.0
+      beta2 = 0.9
+      lr = 1e-4
+      n_critic = 5
+   if LOSS == 'gan':
+      beta1 = 0.9
+      beta2 = 0.999
+      lr = 2e-5
+      n_critic = 1
 
+   # optimize G
+   G_train_op = tf.train.AdamOptimizer(learning_rate=lr,beta1=beta1,beta2=beta2).minimize(errG, var_list=g_vars, global_step=global_step)
    # optimize D
-   D_train_op = tf.train.AdamOptimizer(learning_rate=1e-4,beta1=0.0,beta2=0.9).minimize(errD, var_list=d_vars)
+   D_train_op = tf.train.AdamOptimizer(learning_rate=lr,beta1=beta1,beta2=beta2).minimize(errD, var_list=d_vars)
 
    saver = tf.train.Saver(max_to_keep=1)
    init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -191,8 +217,6 @@ if __name__ == '__main__':
    ########################################### training portion
 
    step = sess.run(global_step)
-
-   n_critic = 5
 
    print 'Loading data...'
    images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)

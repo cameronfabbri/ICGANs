@@ -132,8 +132,8 @@ if __name__ == '__main__':
    # bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
    #new_y = np.zeros((15))
    new_y = label
-   new_y[0][0] = 0 # not bald
-   #new_y = np.expand_dims(new_y, 0)
+   #new_y[0][0] = 0 # not bald
+   new_y[0][3] = 1
    print new_y
    
    new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
