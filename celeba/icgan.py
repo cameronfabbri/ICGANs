@@ -111,18 +111,16 @@ if __name__ == '__main__':
 
 
    print 'Loading data...'
-   mimages = np.load(DATA_DIR+'images.npy')
-   latents = np.load(DATA_DIR+'latents.npy')
-   labels  = []
-   with open(DATA_DIR+'/labels.txt', 'r') as f:
-      for line in f:
-         zero = np.zeros((10))
-         line = line.rstrip()
-         for l in line:
-            zero[int(l)] = 1
-            labels.append(zero)
-   labels = np.asarray(labels)
-   test_len = len(labels)
+
+   '''
+      When the encoder is done training, create a test set of x:z by encoding
+      a bunch of test images. Save out the latent vectors and path to image,
+      no need to save the image again.
+   '''
+   
+
+   exit()
+   
    print 'Done'
    print
    '''

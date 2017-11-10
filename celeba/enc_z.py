@@ -148,7 +148,6 @@ if __name__ == '__main__':
 
    print 'train num:',train_len
 
-
    lr_ = 1e-4
    while step < MAX_STEPS:
 
