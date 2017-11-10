@@ -1,15 +1,8 @@
 '''
 
-   ICGAN
+   ICGAN just one one image, pass in the image
 
-   Run this after all other models are trained in this order:
-      - mnist_cgan: generates conditional mnist images from noise
-      - enc_z: encodes images to z, i.e the noise vectors from cgan
-      - enc_y: encodes images to labels y
-
-   I believe all I have to do is now load up the saved model for the generator,
-   then load up an image, encode it, (or directly save out test sample z), and
-   swap out the attribute and boom
+   Have to encode the image first....
 
 '''
 import matplotlib.pyplot as plt
@@ -22,6 +15,7 @@ from tqdm import tqdm
 import numpy as np
 import argparse
 import random
+import glob
 import ntpath
 import time
 import sys
@@ -64,25 +58,22 @@ def netG(z, y, BATCH_SIZE):
    return conv4
 
 
+
 if __name__ == '__main__':
    
    BATCH_SIZE = 1
 
    parser = argparse.ArgumentParser()
    parser.add_argument('--CHECKPOINT_DIR', required=False,help='The generator checkpoint to load',type=str,default='mnist')
-   parser.add_argument('--DATASET',        required=False,help='The dataset to use',              type=str,default='mnist')
    parser.add_argument('--DATA_DIR',       required=False,help='Directory where data is',         type=str,default='./')
    parser.add_argument('--OUT_DIR',        required=True,help='Directory to save data in',        type=str)
-   parser.add_argument('--NUM_GEN',        required=True,help='Directory to save data in',        type=str)
    a = parser.parse_args()
 
    CHECKPOINT_DIR = a.CHECKPOINT_DIR
-   DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    OUT_DIR        = a.OUT_DIR
-   NUM_GEN        = a.NUM_GEN
-   IMAGES_DIR     = OUT_DIR
-   
+   IMAGES_DIR = 'one/'
+
    try: os.makedirs(IMAGES_DIR)
    except: pass
 
@@ -111,84 +102,66 @@ if __name__ == '__main__':
          print "Could not restore model"
          pass
 
-
-   print 'Loading data...'
-
-   '''
-      When the encoder is done training, create a test set of x:z by encoding
-      a bunch of test images. Save out the latent vectors and path to image,
-      no need to save the image again.
-   '''
-
    pkl_file = open(DATA_DIR+'data.pkl')
-   
    data     = pickle.load(pkl_file)
    images_  = data.keys()
    t        = data.values()
-
-   encodings, labels = zip(*t)
-
-   test_len = len(images_)
-
+   
    images_ = np.asarray(images_)
+   encodings, labels = zip(*t)
    encodings = np.asarray(encodings)
    labels = np.asarray(labels)
 
-   print 'Done'
-   print
+   original_image = images_[0]
+   label          = labels[0]
+   z_             = encodings[0]
 
-   print 'Generating data...'
-   for n in tqdm(range(int(NUM_GEN))):
+   original_image = misc.imread(original_image)
+   original_image = data_ops.normalize(original_image)
 
-      idx = np.random.choice(np.arange(test_len), 1, replace=False)
+   z_ = np.expand_dims(z_, 0)
+   label = np.expand_dims(label, 0)
 
-      original_image = images_[idx]
-      label          = labels[idx]
-      z_             = encodings[idx]
+   reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
 
-      original_image = misc.imread(original_image[0])
-      original_image = data_ops.normalize(original_image)
+   misc.imsave(IMAGES_DIR+str('000')+'_o.png', original_image)
+   misc.imsave(IMAGES_DIR+str('000')+'_r.png', reconstruction)
 
-      reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
+   print label
 
-      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', original_image)
-      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', reconstruction)
+   # bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
+   #new_y = np.zeros((15))
+   new_y = label
+   new_y[0][0] = 0 # not bald
+   #new_y = np.expand_dims(new_y, 0)
+   print new_y
+   
+   new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
+   misc.imsave(IMAGES_DIR+str('000')+'_n.png', new_image)
 
-      print label
+   exit()
 
-      # bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
-      new_y = np.zeros((15))
-      new_y[-4] = 1 # no beard
-      new_y[5] = 1 # glasses
-      new_y = np.expand_dims(new_y, 0)
-      print new_y
-      
-      new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
-      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', new_image)
+   new_y = np.expand_dims(np.zeros((10)),0)
+   r = random.randint(0,9)
+   new_y[0][r] = 1
+   true_index = np.argmax(label[0])
+   new_index  = np.argmax(new_y[0])
 
-      exit()
-
+   while new_index == true_index:
       new_y = np.expand_dims(np.zeros((10)),0)
       r = random.randint(0,9)
       new_y[0][r] = 1
       true_index = np.argmax(label[0])
       new_index  = np.argmax(new_y[0])
 
-      while new_index == true_index:
-         new_y = np.expand_dims(np.zeros((10)),0)
-         r = random.randint(0,9)
-         new_y[0][r] = 1
-         true_index = np.argmax(label[0])
-         new_index  = np.argmax(new_y[0])
+   #print 'label:',label
+   #print 'new_y:',new_y
+   
+   new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
+   plt.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', np.squeeze(new_gen))
 
-      #print 'label:',label
-      #print 'new_y:',new_y
-      
-      new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
-      plt.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', np.squeeze(new_gen))
-
-      #print 'should be a',np.argmax(new_y[0]),'!'
-      #print
+   #print 'should be a',np.argmax(new_y[0]),'!'
+   #print
 
    
 
