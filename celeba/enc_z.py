@@ -167,7 +167,8 @@ if __name__ == '__main__':
       _,l = sess.run([train_op, loss], feed_dict={images:batch_images, z:batch_z, lr:lr_})
       if step%10==0: print 'step:',step,'loss:',l
       step += 1
-    
-   print 'Saving model...'
-   saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
-   saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
+
+      if step % 500 == 0:
+         print 'Saving model...'
+         saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
+         saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
