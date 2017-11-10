@@ -70,7 +70,6 @@ def netD(input_images, y, BATCH_SIZE, LOSS, reuse=False):
       input_ = conv_cond_concat(input_images, y)
 
       conv1 = tcl.conv2d(input_, 64, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
-      if LOSS != 'wgan': conv1 = tcl.batch_norm(conv1)
       conv1 = lrelu(conv1)
       
       conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv2')
@@ -145,7 +144,7 @@ if __name__ == '__main__':
    # Important! no initial activations done on the last layer for D, so if one method needs an activation, do it
    e = 1e-12
    if LOSS == 'gan':
-      errD_real = tf.n.sigmoid(errD_real)
+      errD_real = tf.nn.sigmoid(errD_real)
       errD_fake = tf.nn.sigmoid(errD_fake)
       errG = tf.reduce_mean(-tf.log(errD_fake + e))
       errD = tf.reduce_mean(-(tf.log(errD_real+e)+tf.log(1-errD_fake+e)))
@@ -186,7 +185,7 @@ if __name__ == '__main__':
       beta2    = 0.9
       lr       = 1e-4
 
-   if LOSS = 'lsgan':
+   if LOSS == 'lsgan':
       n_critic = 1
       beta1    = 0.5
       beta2    = 0.999
@@ -276,6 +275,7 @@ if __name__ == '__main__':
          i+=1
 
       sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+      if LOSS == 'gan': sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
 
       # now get all losses and summary *without* performing a training step - for tensorboard and printing
       D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
