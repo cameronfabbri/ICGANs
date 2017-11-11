@@ -132,7 +132,7 @@ if __name__ == '__main__':
    global_step = tf.Variable(0, name='global_step', trainable=False)
    real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 10), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
