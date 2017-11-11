@@ -150,10 +150,10 @@ if __name__ == '__main__':
       errD = tf.reduce_mean(-(tf.log(errD_real+e)+tf.log(1-errD_fake+e)))
 
    if LOSS == 'lsgan':
-      errD_real = tf.n.sigmoid(errD_real)
+      errD_real = tf.nn.sigmoid(errD_real)
       errD_fake = tf.nn.sigmoid(errD_fake)
-      errD = 0.5*(tf.square(errD_real - 1)) + 0.5*(tf.square(errD_fake))
-      errG = 0.5*(tf.square(errD_fake - 1))
+      errD = tf.reduce_mean(0.5*(tf.square(errD_real - 1)) + 0.5*(tf.square(errD_fake)))
+      errG = tf.reduce_mean(0.5*(tf.square(errD_fake - 1)))
 
    if LOSS == 'wgan':
       # cost functions
