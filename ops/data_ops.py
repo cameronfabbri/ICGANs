@@ -208,12 +208,12 @@ def load_celeba(data_dir, mode='train'):
             #attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
             attr = np.asarray(list(attr[x] for x in [ 4, 5, 8, 9, 15, 18, 20, 26, 31]), dtype=np.float32)
             attr = np.asarray([0 if x == -1 else 1 for x in attr])
-            train_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
+            train_image_attr[data_dir+'img_align_celeba_cropped/'+image_id] = attr
          if image_id in test_ids:
             attr = line[1:]
             attr = np.asarray(list(attr[x] for x in [4, 5, 8, 9, 15, 18, 20, 26, 31]), dtype=np.float32)
             attr = np.asarray([0 if x == -1 else 1 for x in attr])
-            test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
+            test_image_attr[data_dir+'img_align_celeba_cropped/'+image_id] = attr
 
          i += 1
          #if i == 70: break
