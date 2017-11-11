@@ -111,7 +111,7 @@ if __name__ == '__main__':
    parser.add_argument('--MODE',       required=False,help='train/test/val',          type=str,default='train')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    a = parser.parse_args()
 
@@ -120,7 +120,7 @@ if __name__ == '__main__':
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
-   MAX_STEPS      = a.MAX_STEPS
+   EPOCHS      = a.EPOCHS
 
    CHECKPOINT_DIR = 'checkpoints/gan/DATASET_'+DATASET+'/LOSS_'+LOSS+'/'
    IMAGES_DIR     = CHECKPOINT_DIR+'images/'
@@ -132,7 +132,7 @@ if __name__ == '__main__':
    global_step = tf.Variable(0, name='global_step', trainable=False)
    real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 15), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 10), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -242,8 +242,11 @@ if __name__ == '__main__':
    print 'train num:',train_len
    print 'test num:',test_len
 
-   while step < MAX_STEPS:
+   epoch_num = step/(train_len/BATCH_SIZE)
+
+   while epoch_num < EPOCHS:
       
+      epoch_num = step/(num_train/BATCH_SIZE)
       start = time.time()
 
       # train the discriminator
@@ -281,7 +284,7 @@ if __name__ == '__main__':
       D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
       summary_writer.add_summary(summary, step)
 
-      print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
+      print 'epoch:',epoch_num,'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
       if step%500 == 0:
@@ -322,3 +325,7 @@ if __name__ == '__main__':
                f.write('step_'+str(step)+'_num_'+str(num)+','+str(atr)+'\n')
             num += 1
             if num == 5: break
+   saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
+   saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
+
+
