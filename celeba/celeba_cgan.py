@@ -246,7 +246,7 @@ if __name__ == '__main__':
 
    while epoch_num < EPOCHS:
       
-      epoch_num = step/(num_train/BATCH_SIZE)
+      epoch_num = step/(train_len/BATCH_SIZE)
       start = time.time()
 
       # train the discriminator
