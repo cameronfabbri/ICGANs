@@ -188,8 +188,8 @@ def load_celeba(data_dir, mode='train'):
       38 Wearing_Necktie
       39 Young
 
-      only considering: bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
-      4,5,8,9,11,15,16,17,18,20,22,24,31,35,37
+      only considering: bald, bangs, black_hair, blond_hair, eyeglasses, heavy_makeup, male, pale_skin, smiling
+      4, 5, 8, 9, 15, 18, 20, 26, 31
    '''
    dum = 0
    train_image_attr = {}
@@ -203,14 +203,15 @@ def load_celeba(data_dir, mode='train'):
             dum += 1
             continue
          image_id = line[0]
-         if image_id in train_ids:
+         if image_id in train_ids or image_id in val_ids:
             attr = line[1:]
-            attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
+            #attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
+            attr = np.asarray(list(attr[x] for x in [ 4, 5, 8, 9, 15, 18, 20, 26, 31]), dtype=np.float32)
             attr = np.asarray([0 if x == -1 else 1 for x in attr])
             train_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
          if image_id in test_ids:
             attr = line[1:]
-            attr = np.asarray(list(attr[x] for x in [4,5,8,9,11,15,16,17,18,20,22,24,31,35,37]), dtype=np.float32)
+            attr = np.asarray(list(attr[x] for x in [4, 5, 8, 9, 15, 18, 20, 26, 31]), dtype=np.float32)
             attr = np.asarray([0 if x == -1 else 1 for x in attr])
             test_image_attr[data_dir+'img_align_celeba_resized/'+image_id] = attr
 
