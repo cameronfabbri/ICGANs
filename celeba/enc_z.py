@@ -91,7 +91,7 @@ if __name__ == '__main__':
    BATCH_SIZE     = a.BATCH_SIZE
    ACTIVATION     = a.ACTIVATION
 
-   CHECKPOINT_DIR = 'checkpoints/encoder_z/DATASET_'+DATASET+'/ACTIVATION_'+ACTIVATION+'/LOSS_'+LOSS|'/'
+   CHECKPOINT_DIR = 'checkpoints/encoder_z/DATASET_'+DATASET+'/ACTIVATION_'+ACTIVATION+'/LOSS_'+LOSS+'/'
    
    try: os.makedirs(CHECKPOINT_DIR)
    except: pass

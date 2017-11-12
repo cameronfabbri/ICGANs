@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
    # placeholders for data going into the network
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 15), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -126,7 +126,8 @@ if __name__ == '__main__':
    images_  = data.keys()
    t        = data.values()
 
-   encodings, labels = zip(*t)
+   #encodings, labels = zip(*t)
+   labels, encodings = zip(*t)
 
    test_len = len(images_)
 
@@ -147,7 +148,10 @@ if __name__ == '__main__':
       z_             = encodings[idx]
 
       original_image = misc.imread(original_image[0])
-      original_image = data_ops.normalize(original_image)
+      #original_image = data_ops.normalize(original_image)
+
+      label = np.reshape(label, (1,9))
+      z_    = np.reshape(z_, (1,100))
 
       reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
 
@@ -157,7 +161,7 @@ if __name__ == '__main__':
       print label
 
       # bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
-      new_y = np.zeros((15))
+      new_y = np.zeros((9))
       new_y[-4] = 1 # no beard
       new_y[5] = 1 # glasses
       new_y = np.expand_dims(new_y, 0)
