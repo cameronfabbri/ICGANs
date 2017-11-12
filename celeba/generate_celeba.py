@@ -80,7 +80,7 @@ if __name__ == '__main__':
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 15), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
