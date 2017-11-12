@@ -79,7 +79,7 @@ if __name__ == '__main__':
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--LOSS',       required=False,help='What type of GAN',        type=str,default='wgan')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    parser.add_argument('--ACTIVATION', required=False,help='Activation function',     type=str,default='lrelu')
    a = parser.parse_args()
@@ -87,7 +87,7 @@ if __name__ == '__main__':
    LOSS           = a.LOSS
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
-   MAX_STEPS      = a.MAX_STEPS
+   EPOCHS      = a.EPOCHS
    BATCH_SIZE     = a.BATCH_SIZE
    ACTIVATION     = a.ACTIVATION
 
@@ -150,8 +150,12 @@ if __name__ == '__main__':
 
    print 'train num:',train_len
 
+   epoch_num = step/(train_len/BATCH_SIZE)
+   
    lr_ = 1e-4
-   while step < MAX_STEPS:
+   while epoch_num < EPOCHS:
+      
+      epoch_num = step/(train_len/BATCH_SIZE)
 
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
       batch_z      = np.squeeze(latents[idx])
