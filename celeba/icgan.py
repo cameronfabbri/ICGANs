@@ -147,8 +147,8 @@ if __name__ == '__main__':
       label          = labels[idx]
       z_             = encodings[idx]
 
-      #original_image = misc.imread(original_image[0])
-      original_image = data_ops.normalize(original_image)
+      original_image = misc.imread(original_image[0])
+      #original_image = data_ops.normalize(original_image)
 
       label = np.reshape(label, (1,9))
       z_    = np.reshape(z_, (1,100))
@@ -160,11 +160,11 @@ if __name__ == '__main__':
 
       print label
 
-      # bald, bangs, black_hair, blond_hair, brown_hair, eyeglasses, goatee, gray_hair, heavy_makeup, male, mustache, no_beard, smiling, wearing_hat, wearing_necklace
+      # bald, bangs, black_hair, blond_hair, eyeglasses, heavy_makeup, male, pale_skin, smiling
       new_y = np.zeros((9))
-      new_y[-4] = 1 # no beard
-      new_y[5] = 1 # glasses
-      new_y = np.expand_dims(new_y, 0)
+      new_y = label
+      new_y[0][3] = 1
+      #new_y = np.expand_dims(new_y, 0)
       print new_y
       
       new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
