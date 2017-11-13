@@ -126,8 +126,8 @@ if __name__ == '__main__':
    images_  = data.keys()
    t        = data.values()
 
-   #encodings, labels = zip(*t)
-   labels, encodings = zip(*t)
+   encodings, labels = zip(*t)
+   #labels, encodings = zip(*t)
 
    test_len = len(images_)
 
@@ -147,8 +147,8 @@ if __name__ == '__main__':
       label          = labels[idx]
       z_             = encodings[idx]
 
-      original_image = misc.imread(original_image[0])
-      #original_image = data_ops.normalize(original_image)
+      #original_image = misc.imread(original_image[0])
+      original_image = data_ops.normalize(original_image)
 
       label = np.reshape(label, (1,9))
       z_    = np.reshape(z_, (1,100))
