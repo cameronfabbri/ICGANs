@@ -27,13 +27,11 @@ def netG(z, y, BATCH_SIZE):
 
    # concat attribute y onto z
    z = tf.concat([z,y], axis=1)
-   print 'z:',z
-
    z = tcl.fully_connected(z, 4*4*512, activation_fn=tf.identity, scope='g_z')
+   #z = tcl.batch_norm(z)
    z = tf.reshape(z, [BATCH_SIZE, 4, 4, 512])
-   z = tcl.batch_norm(z)
-   z = tf.nn.relu(z)
-   
+   #z = tf.nn.relu(z)
+
    conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
    conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
    conv3 = tcl.convolution2d_transpose(conv2, 64, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
@@ -108,7 +106,6 @@ if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
    parser.add_argument('--LOSS',       required=False,help='Type of GAN loss to use', type=str,default='wgan')
-   parser.add_argument('--MODE',       required=False,help='train/test/val',          type=str,default='train')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
    parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
@@ -116,7 +113,6 @@ if __name__ == '__main__':
    a = parser.parse_args()
 
    LOSS           = a.LOSS
-   MODE           = a.MODE
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
