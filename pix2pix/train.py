@@ -168,7 +168,7 @@ if __name__ == '__main__':
    parser.add_argument('--LOSS',       required=False,help='Type of GAN loss to use', type=str,default='wgan')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--EPOCHS',     required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',     required=False,help='Maximum epochs',          type=int,default=100)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    a = parser.parse_args()
 
@@ -338,7 +338,7 @@ if __name__ == '__main__':
       print 'epoch:',epoch_num,'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
-      if step%1 == 0:
+      if step%500 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
@@ -377,7 +377,6 @@ if __name__ == '__main__':
                f.write('step_'+str(step)+'_num_'+str(num)+','+str(atr)+'\n')
             num += 1
             if num == 5: break
-         exit()
    print 'Saving one last time...'
    saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
    saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
