@@ -13,9 +13,13 @@ def crop_center(img,cropx=64,cropy=64):
     starty = y//2-(cropy//2)    
     return img[starty:starty+cropy,startx:startx+cropx]
 
+
+x1 = 30
+y1 = 40
 for i in tqdm(images):
+
    filename = ntpath.basename(i)
    img = misc.imread(i)
-   img = misc.imresize(img, (96,96))
-   img = crop_center(img)
+   img = img[y1:y1+138, x1:x1+138,:]
+   img = misc.imresize(img, (64,64))
    misc.imsave('img_align_celeba_cropped/'+filename, img)
