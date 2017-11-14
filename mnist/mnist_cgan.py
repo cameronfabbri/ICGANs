@@ -107,7 +107,7 @@ if __name__ == '__main__':
    parser.add_argument('--MODE',       required=False,help='train/test/val',          type=str,default='train')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    a = parser.parse_args()
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
-   MAX_STEPS      = a.MAX_STEPS
+   EPOCHS      = a.EPOCHS
 
    CHECKPOINT_DIR = 'checkpoints/DATASET_'+DATASET+'/LOSS_'+LOSS+'/'
    IMAGES_DIR     = CHECKPOINT_DIR+'images/'
@@ -201,8 +201,12 @@ if __name__ == '__main__':
    test_len  = len(test_annots)
 
    print 'train num:',train_len
+   
+   epoch_num = step/(train_len/BATCH_SIZE)
 
-   while step < MAX_STEPS:
+   while epoch_num < EPOCHS:
+      
+      epoch_num = step/(train_len/BATCH_SIZE)
       
       start = time.time()
 
@@ -225,7 +229,7 @@ if __name__ == '__main__':
       D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
       summary_writer.add_summary(summary, step)
 
-      print 'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
+      print 'epoch:',epoch_num,'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
       if step%500 == 0:

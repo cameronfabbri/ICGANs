@@ -15,6 +15,8 @@ import os
 import requests
 import gzip
 import cPickle as pickle
+import gzip
+import mnist_reader
 
 '''
    Helper function that returns string names for the attributes
@@ -121,6 +123,30 @@ def load_mnist(data_dir, mode='train'):
       return np.asarray(mnist_test_images), np.asarray(mnist_test_labels)
 
    return 'mode error'
+
+
+def load_fashion(data_dir):
+
+   X_train, y_train = mnist_reader.load_mnist(data_dir, kind='train')
+   X_test, y_test = mnist_reader.load_mnist(data_dir, kind='t10k')
+
+   train_images = []
+   test_images  = []
+   train_labels = []
+   test_labels = []
+
+   for t,l in zip(X_train, y_train):
+      label = np.zeros((10))
+      label[l] = 1
+      train_labels.append(label)
+      train_images.append(np.reshape(t, (28, 28, 1)))
+   for t,l in zip(X_test, y_test):
+      label = np.zeros((10))
+      label[l] = 1
+      test_labels.append(label)
+      test_images.append(np.reshape(t, (28, 28, 1)))
+
+   return np.asarray(train_images), np.asarray(train_labels), np.asarray(test_images), np.asarray(test_labels)
 
 
 '''
