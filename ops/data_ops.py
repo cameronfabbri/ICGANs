@@ -16,7 +16,7 @@ import requests
 import gzip
 import cPickle as pickle
 import gzip
-import mnist_reader
+#import mnist_reader
 
 '''
    Helper function that returns string names for the attributes

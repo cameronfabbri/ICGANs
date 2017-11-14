@@ -202,6 +202,7 @@ if __name__ == '__main__':
 
       #sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
       sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
+      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
 
       # now get all losses and summary *without* performing a training step - for tensorboard and printing
       #D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
