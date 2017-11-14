@@ -24,55 +24,7 @@ sys.path.insert(0, '../ops/')
 
 from tf_ops import *
 import data_ops
-
-def activate(x, ACTIVATION):
-   if ACTIVATION == 'lrelu': return lrelu(x)
-   if ACTIVATION == 'relu':  return relu(x)
-   if ACTIVATION == 'elu':   return elu(x)
-   if ACTIVATION == 'swish': return swish(x)
-
-'''
-   Encoder
-'''
-def encZ(x, ACTIVATION):
-
-   conv1 = tcl.conv2d(x, 64, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv1')
-   conv1 = activate(conv1, ACTIVATION)
-   
-   conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv2')
-   conv2 = activate(conv2, ACTIVATION)
-
-   conv3 = tcl.conv2d(conv2, 256, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv3')
-   conv3 = activate(conv3, ACTIVATION)
-
-   conv4 = tcl.conv2d(conv3, 512, 5, 2, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='conv4')
-   conv4 = activate(conv4, ACTIVATION)
-
-   conv4_flat = tcl.flatten(conv4)
-
-   fc1 = tcl.fully_connected(conv4_flat, 4096, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc1')
-   fc1 = activate(fc1, ACTIVATION)
-
-   fc2 = tcl.fully_connected(fc1, 100, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc2')
-   
-   print 'input:',x
-   print 'conv1:',conv1
-   print 'conv2:',conv2
-   print 'conv3:',conv3
-   print 'conv4:',conv4
-   print 'fc1:',fc1
-   print 'fc2:',fc2
-   print 'END ENCODER\n'
-   
-   tf.add_to_collection('vars', conv1)
-   tf.add_to_collection('vars', conv2)
-   tf.add_to_collection('vars', conv3)
-   tf.add_to_collection('vars', conv4)
-   tf.add_to_collection('vars', fc1)
-   tf.add_to_collection('vars', fc2)
-
-   return fc2
-
+from nets import *
 
 if __name__ == '__main__':
 
