@@ -163,7 +163,7 @@ if __name__ == '__main__':
       # bald, bangs, black_hair, blond_hair, eyeglasses, heavy_makeup, male, pale_skin, smiling
       new_y = np.zeros((9))
       new_y = label
-      new_y[0][3] = 1
+      new_y[0][6] = 1
       #new_y = np.expand_dims(new_y, 0)
       print new_y
       
