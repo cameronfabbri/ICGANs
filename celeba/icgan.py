@@ -45,8 +45,8 @@ def netG(z, y, BATCH_SIZE):
 
    z = tcl.fully_connected(z, 4*4*512, activation_fn=tf.identity, scope='g_z')
    z = tf.reshape(z, [BATCH_SIZE, 4, 4, 512])
-   z = tcl.batch_norm(z)
-   z = tf.nn.relu(z)
+   #z = tcl.batch_norm(z)
+   #z = tf.nn.relu(z)
    
    conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
    conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
