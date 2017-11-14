@@ -173,7 +173,7 @@ if __name__ == '__main__':
       if step > 300000: lr_ = 1e-7
 
       _,l = sess.run([train_op, loss], feed_dict={images:batch_images, z:batch_z, lr:lr_})
-      if step%10==0: print 'step:',step,'loss:',l
+      if step%10==0: print 'epoch:',epoch_num,'step:',step,'loss:',l
       step += 1
 
       if step % 1000 == 0:
