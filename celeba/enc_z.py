@@ -93,11 +93,9 @@ if __name__ == '__main__':
    data           = pickle.load(pkl_file)
    images_        = data.keys()
    t              = data.values()
-   annots,latents = zip(*t)
    train_len      = len(latents)
    
    latents = np.asarray(latents)
-   annots  = np.asarray(annots)
    images_ = np.asarray(images_)
 
    print 'train num:',train_len
@@ -111,7 +109,6 @@ if __name__ == '__main__':
 
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
       batch_z      = np.squeeze(latents[idx])
-      batch_y      = np.squeeze(annots[idx])
       batch_img    = images_[idx]
       batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
       i = 0
