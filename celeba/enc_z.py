@@ -151,7 +151,9 @@ if __name__ == '__main__':
    print 'train num:',train_len
 
    epoch_num = step/(train_len/BATCH_SIZE)
-   
+
+   test_images = glob.glob('/
+
    lr_ = 1e-4
    while epoch_num < EPOCHS:
       
@@ -180,3 +182,7 @@ if __name__ == '__main__':
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
+
+         # test out some images
+
+         
