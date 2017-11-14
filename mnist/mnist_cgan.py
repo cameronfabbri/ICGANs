@@ -55,10 +55,13 @@ if __name__ == '__main__':
 
    # get the output from D on the real and fake data
    errD_real = netD(real_images, y, BATCH_SIZE)
-   errD_fake = netD(gen_images, y, BATCH_SIZE, reuse=True)
+   errD_fake1 = 0.5*netD(gen_images, y, BATCH_SIZE, reuse=True)
+
    # matching aware discriminator - send real images in with fake labels and mark as fake
-   errD_fake += netD(real_images, fy, BATCH_SIZE, reuse=True)
-   
+   #if LOSS != 'wgan': errD_fake += netD(real_images, fy, BATCH_SIZE, reuse=True)
+   errD_fake2 = 0.5*netD(real_images, fy, BATCH_SIZE, reuse=True)
+   errD_fake = errD_fake1 + errD_fake2
+
    e = 1e-12
    if LOSS == 'gan':
       errD_real = tf.nn.sigmoid(errD_real)
@@ -100,7 +103,7 @@ if __name__ == '__main__':
       n_critic = 5
       beta1    = 0.0
       beta2    = 0.9
-      lr       = 1e-4
+      lr       = 1e-5
 
    if LOSS == 'lsgan':
       n_critic = 1
@@ -109,16 +112,22 @@ if __name__ == '__main__':
       lr       = 0.001
 
    if LOSS == 'gan':
+      '''
       n_critic = 1
       beta1    = 0.9
       beta2    = 0.999
       lr       = 2e-5
+      '''
+      n_critic = 1
+      beta1    = 0.0
+      beta2    = 0.9
+      lr       = 1e-5
 
    # optimize G
-   G_train_op = tf.train.AdamOptimizer(learning_rate=1e-4,beta1=0.0,beta2=0.9).minimize(errG, var_list=g_vars, global_step=global_step)
+   G_train_op = tf.train.AdamOptimizer(learning_rate=lr,beta1=beta1,beta2=beta2).minimize(errG, var_list=g_vars, global_step=global_step)
 
    # optimize D
-   D_train_op = tf.train.AdamOptimizer(learning_rate=1e-4,beta1=0.0,beta2=0.9).minimize(errD, var_list=d_vars)
+   D_train_op = tf.train.AdamOptimizer(learning_rate=lr,beta1=beta1,beta2=beta2).minimize(errD, var_list=d_vars)
 
    saver = tf.train.Saver(max_to_keep=1)
    init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -199,6 +208,7 @@ if __name__ == '__main__':
       batch_fy = np.asarray(batch_fy)
 
       sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
+      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
 
       # now get all losses and summary *without* performing a training step - for tensorboard and printing
       D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, fy:batch_fy, y:batch_y, real_images:batch_images})
@@ -207,7 +217,7 @@ if __name__ == '__main__':
       print 'epoch:',epoch_num,'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
       step += 1
     
-      if step%500 == 0:
+      if step%100 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
