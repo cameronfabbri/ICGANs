@@ -19,100 +19,19 @@ sys.path.insert(0, '../ops/')
 
 from tf_ops import *
 import data_ops
-
-'''
-   Generator network
-   batch norm before activation function
-'''
-def netG(z, y, BATCH_SIZE):
-
-   # concat attribute y onto z
-   z = tf.concat([z,y], axis=1)
-   print 'z:',z
-
-   z = tcl.fully_connected(z, 4*4*512, activation_fn=tf.identity, scope='g_z')
-   z = tf.reshape(z, [BATCH_SIZE, 4, 4, 512])
-   z = tcl.batch_norm(z)
-   z = tf.nn.relu(z)
-   
-   conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
-   conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
-   conv3 = tcl.convolution2d_transpose(conv2, 1, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
-   conv3 = conv3[:,:28,:28,:]
-
-   print 'z:',z
-   print 'conv1:',conv1
-   print 'conv2:',conv2
-   print 'conv3:',conv3
-   print
-   print 'END G'
-   print
-   tf.add_to_collection('vars', z)
-   tf.add_to_collection('vars', conv1)
-   tf.add_to_collection('vars', conv2)
-   tf.add_to_collection('vars', conv3)
-   return conv3
-
-'''
-   Discriminator network. No batch norm
-'''
-def netD(input_images, y, BATCH_SIZE, reuse=False):
-
-   print 'DISCRIMINATOR reuse = '+str(reuse)
-   sc = tf.get_variable_scope()
-   with tf.variable_scope(sc, reuse=reuse):
-
-      y_dim = int(y.get_shape().as_list()[-1])
-
-      # reshape so it's batchx1x1xy_size
-      y = tf.reshape(y, shape=[BATCH_SIZE, 1, 1, y_dim])
-      input_ = conv_cond_concat(input_images, y)
-
-      conv1 = tcl.conv2d(input_, 64, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv1')
-      conv1 = lrelu(conv1)
-      
-      conv2 = tcl.conv2d(conv1, 128, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv2')
-      conv2 = lrelu(conv2)
-
-      conv3 = tcl.conv2d(conv2, 256, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv3')
-      conv3 = lrelu(conv3)
-
-      conv4 = tcl.conv2d(conv3, 512, 5, 2, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv4')
-      conv4 = lrelu(conv4)
-
-      conv5 = tcl.conv2d(conv4, 1, 4, 1, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='d_conv5')
-
-      print 'input images:',input_images
-      print 'conv1:',conv1
-      print 'conv2:',conv2
-      print 'conv3:',conv3
-      print 'conv4:',conv4
-      print 'conv5:',conv5
-      print 'END D\n'
-
-      tf.add_to_collection('vars', conv1)
-      tf.add_to_collection('vars', conv2)
-      tf.add_to_collection('vars', conv3)
-      tf.add_to_collection('vars', conv4)
-      tf.add_to_collection('vars', conv5)
-
-      return conv5
-
-
+from nets import *
 
 if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
    parser.add_argument('--LOSS',       required=False,help='Type of GAN loss to use', type=str,default='wgan')
-   parser.add_argument('--MODE',       required=False,help='train/test/val',          type=str,default='train')
-   parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
+   parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='mnist')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',     required=False,help='Maximum training steps',  type=int,default=25)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    a = parser.parse_args()
 
    LOSS           = a.LOSS
-   MODE           = a.MODE
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
@@ -129,6 +48,7 @@ if __name__ == '__main__':
    real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 28, 28, 1), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
    y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 10), name='y')
+   fy          = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 10), name='fy')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -136,19 +56,35 @@ if __name__ == '__main__':
    # get the output from D on the real and fake data
    errD_real = netD(real_images, y, BATCH_SIZE)
    errD_fake = netD(gen_images, y, BATCH_SIZE, reuse=True)
+   # matching aware discriminator - send real images in with fake labels and mark as fake
+   errD_fake += netD(real_images, fy, BATCH_SIZE, reuse=True)
+   
+   e = 1e-12
+   if LOSS == 'gan':
+      errD_real = tf.nn.sigmoid(errD_real)
+      errD_fake = tf.nn.sigmoid(errD_fake)
+      errG = tf.reduce_mean(-tf.log(errD_fake + e))
+      errD = tf.reduce_mean(-(tf.log(errD_real+e)+tf.log(1-errD_fake+e)))
 
-   # cost functions
-   errD = tf.reduce_mean(errD_real) - tf.reduce_mean(errD_fake)
-   errG = tf.reduce_mean(errD_fake)
+   if LOSS == 'lsgan':
+      errD_real = tf.nn.sigmoid(errD_real)
+      errD_fake = tf.nn.sigmoid(errD_fake)
+      errD = tf.reduce_mean(0.5*(tf.square(errD_real - 1)) + 0.5*(tf.square(errD_fake)))
+      errG = tf.reduce_mean(0.5*(tf.square(errD_fake - 1)))
 
-   # gradient penalty
-   epsilon = tf.random_uniform([], 0.0, 1.0)
-   x_hat = real_images*epsilon + (1-epsilon)*gen_images
-   d_hat = netD(x_hat, y, BATCH_SIZE, reuse=True)
-   gradients = tf.gradients(d_hat, x_hat)[0]
-   slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-   gradient_penalty = 10*tf.reduce_mean((slopes-1.0)**2)
-   errD += gradient_penalty
+   if LOSS == 'wgan':
+      # cost functions
+      errD = tf.reduce_mean(errD_real) - tf.reduce_mean(errD_fake)
+      errG = tf.reduce_mean(errD_fake)
+
+      # gradient penalty
+      epsilon = tf.random_uniform([], 0.0, 1.0)
+      x_hat = real_images*epsilon + (1-epsilon)*gen_images
+      d_hat = netD(x_hat, y, BATCH_SIZE, reuse=True)
+      gradients = tf.gradients(d_hat, x_hat)[0]
+      slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+      gradient_penalty = 10*tf.reduce_mean((slopes-1.0)**2)
+      errD += gradient_penalty
 
    # tensorboard summaries
    tf.summary.scalar('d_loss', errD)
@@ -159,6 +95,24 @@ if __name__ == '__main__':
    t_vars = tf.trainable_variables()
    d_vars = [var for var in t_vars if 'd_' in var.name]
    g_vars = [var for var in t_vars if 'g_' in var.name]
+
+   if LOSS == 'wgan':
+      n_critic = 5
+      beta1    = 0.0
+      beta2    = 0.9
+      lr       = 1e-4
+
+   if LOSS == 'lsgan':
+      n_critic = 1
+      beta1    = 0.5
+      beta2    = 0.999
+      lr       = 0.001
+
+   if LOSS == 'gan':
+      n_critic = 1
+      beta1    = 0.9
+      beta2    = 0.999
+      lr       = 2e-5
 
    # optimize G
    G_train_op = tf.train.AdamOptimizer(learning_rate=1e-4,beta1=0.0,beta2=0.9).minimize(errG, var_list=g_vars, global_step=global_step)
@@ -194,7 +148,7 @@ if __name__ == '__main__':
    n_critic = 5
 
    print 'Loading data...'
-   images, annots = data_ops.load_mnist(DATA_DIR, mode=MODE)
+   images, annots = data_ops.load_mnist(DATA_DIR)
    test_images, test_annots = data_ops.load_mnist(DATA_DIR, mode='test')
 
    train_len = len(annots)
@@ -216,17 +170,40 @@ if __name__ == '__main__':
          batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = annots[idx]
          batch_images = images[idx]
-         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+
+         # create wrong labels
+         batch_fy = []
+         for lab in batch_y:
+            l = np.zeros((10))
+            r = random.randint(0,9)
+            while r == np.argmax(lab):
+               r = random.randint(0,9)
+            l[r] = 1
+            batch_fy.append(l)
+         batch_fy = np.asarray(batch_fy)
+         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
       
       # now train the generator once! use normal distribution, not uniform!!
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
       batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y      = annots[idx]
       batch_images = images[idx]
-      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+
+      # create wrong labels
+      batch_fy = []
+      for lab in batch_y:
+         l = np.zeros((10))
+         r = random.randint(0,9)
+         while r == np.argmax(lab):
+            r = random.randint(0,9)
+         l[r] = 1
+         batch_fy.append(l)
+      batch_fy = np.asarray(batch_fy)
+
+      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
 
       # now get all losses and summary *without* performing a training step - for tensorboard and printing
-      D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+      D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, fy:batch_fy, y:batch_y, real_images:batch_images})
       summary_writer.add_summary(summary, step)
 
       print 'epoch:',epoch_num,'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start

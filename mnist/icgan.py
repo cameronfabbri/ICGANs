@@ -31,36 +31,7 @@ sys.path.insert(0, '../ops/')
 
 from tf_ops import *
 import data_ops
-
-'''
-   Generator network
-   batch norm before activation function
-'''
-def netG(z, y, BATCH_SIZE):
-
-   # concat attribute y onto z
-   z = tf.concat([z,y], axis=1)
-   print 'z:',z
-
-   z = tcl.fully_connected(z, 4*4*512, activation_fn=tf.identity, scope='g_z')
-   z = tf.reshape(z, [BATCH_SIZE, 4, 4, 512])
-   z = tcl.batch_norm(z)
-   z = tf.nn.relu(z)
-   
-   conv1 = tcl.convolution2d_transpose(z, 256, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv1')
-   conv2 = tcl.convolution2d_transpose(conv1, 128, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv2')
-   conv3 = tcl.convolution2d_transpose(conv2, 1, 5, 2, normalizer_fn=tcl.batch_norm, activation_fn=tf.nn.relu, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='g_conv3')
-   conv3 = conv3[:,:28,:28,:]
-
-   print 'z:',z
-   print 'conv1:',conv1
-   print 'conv2:',conv2
-   print 'conv3:',conv3
-   print
-   print 'END G'
-   print
-   return conv3
-
+from nets import *
 
 if __name__ == '__main__':
    
