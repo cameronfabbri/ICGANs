@@ -176,7 +176,7 @@ if __name__ == '__main__':
       if step%10==0: print 'step:',step,'loss:',l
       step += 1
 
-      if step % 1 == 0:
+      if step % 1000 == 0:
          print 'Saving model...'
          saver.save(sess, CHECKPOINT_DIR+'checkpoint-'+str(step))
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
