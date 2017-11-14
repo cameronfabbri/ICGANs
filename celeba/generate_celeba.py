@@ -26,10 +26,11 @@ sys.path.insert(0, '../ops/')
 from tf_ops import *
 import data_ops
 
+from celeba_cgan import netG
+
 '''
    Generator network
    batch norm before activation function
-'''
 def netG(z, y, BATCH_SIZE):
 
    # concat attribute y onto z
@@ -55,6 +56,7 @@ def netG(z, y, BATCH_SIZE):
    print 'END G'
    print
    return conv4
+'''
 
 if __name__ == '__main__':
 
