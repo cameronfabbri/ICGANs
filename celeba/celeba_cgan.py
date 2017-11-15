@@ -26,19 +26,23 @@ if __name__ == '__main__':
    parser.add_argument('--LOSS',       required=False,help='Type of GAN loss to use', type=str,default='wgan')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=25)
+   parser.add_argument('--EPOCHS',     required=False,help='Maximum training steps',  type=int,default=25)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
+   parser.add_argument('--DIST',       required=False,help='Distribution to use',     type=str,default='normal')
+   parser.add_argument('--MATCH',      required=False,help='Match discriminator',     type=bool,default=0)
    a = parser.parse_args()
 
    LOSS           = a.LOSS
+   DIST           = a.DIST
+   MATCH          = str(a.MATCH)
+   EPOCHS         = a.EPOCHS
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
-   EPOCHS      = a.EPOCHS
 
-   CHECKPOINT_DIR = 'checkpoints/gan/DATASET_'+DATASET+'/LOSS_'+LOSS+'/'
+   CHECKPOINT_DIR = 'checkpoints/gan/DATASET_'+DATASET+'/LOSS_'+LOSS+'/DIST_'+str(DIST)+'/MATCH_'+MATCH+'/'
    IMAGES_DIR     = CHECKPOINT_DIR+'images/'
-   
+
    try: os.makedirs(IMAGES_DIR)
    except: pass
 
@@ -55,10 +59,12 @@ if __name__ == '__main__':
    # get the output from D on the real and fake data
    errD_real = netD(real_images, y, BATCH_SIZE, LOSS)
    # matching aware discriminator - send real images in with fake labels and mark as fake
-   errD_fake1 = 0.5*netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
-   errD_fake2 = 0.5*netD(real_images, fy, BATCH_SIZE, LOSS, reuse=True)
-   errD_fake = errD_fake1 + errD_fake2
-   #errD_fake = netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
+   if MATCH == 'True':
+      errD_fake1 = 0.5*netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
+      errD_fake2 = 0.5*netD(real_images, fy, BATCH_SIZE, LOSS, reuse=True)
+      errD_fake = errD_fake1 + errD_fake2
+      print 'using match'
+   else: errD_fake = netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
 
    # Important! no initial activations done on the last layer for D, so if one method needs an activation, do it
    e = 1e-12
@@ -112,9 +118,9 @@ if __name__ == '__main__':
 
    if LOSS == 'gan':
       n_critic = 1
-      beta1    = 0.9
+      beta1    = 0.5
       beta2    = 0.999
-      lr       = 2e-5
+      lr       = 0.0002
 
    # optimize G
    G_train_op = tf.train.AdamOptimizer(learning_rate=lr,beta1=beta1,beta2=beta2).minimize(errG, var_list=g_vars, global_step=global_step)
@@ -171,12 +177,10 @@ if __name__ == '__main__':
       # train the discriminator
       for critic_itr in range(n_critic):
          idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = annots[idx]
          batch_img    = images[idx]
 
-         # get wrong labels
-         batch_fy = 1-batch_y
 
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
          i = 0
@@ -184,29 +188,37 @@ if __name__ == '__main__':
             img = data_ops.normalize(misc.imread(img))
             batch_images[i, ...] = img
             i+=1
-         sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
+
+         if MATCH == 'True':
+            batch_fy = 1-batch_y
+            sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
+         else:
+            sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
       
       # now train the generator once! use normal distribution, not uniform!!
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-      batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+      batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y      = annots[idx]
-      batch_fy     = 1-batch_y
       batch_img    = images[idx]
       batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
-      # gotta read the batch of images
+      
       i = 0
       for img in batch_img:
          img = data_ops.normalize(misc.imread(img))
          batch_images[i, ...] = img
          i+=1
 
-      #sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
-      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
-      sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
-
       # now get all losses and summary *without* performing a training step - for tensorboard and printing
-      #D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
-      D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op], feed_dict={z:batch_z, y:batch_y, fy:batch_fy,real_images:batch_images})
+      if MATCH == 'True':
+         sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
+         sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
+         batch_fy = 1-batch_y
+         D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op],
+                                 feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
+      else:
+         D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op],
+                                 feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
+
       summary_writer.add_summary(summary, step)
 
       print 'epoch:',epoch_num,'step:',step,'D loss:',D_loss,'G_loss:',G_loss,'time:',time.time()-start
@@ -218,14 +230,13 @@ if __name__ == '__main__':
          saver.export_meta_graph(CHECKPOINT_DIR+'checkpoint-'+str(step)+'.meta')
 
          idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
-         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = test_annots[idx]
-         batch_fy     = 1-batch_y
          batch_img    = test_images[idx]
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
          '''
          idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-         batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+         batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = annots[idx]
          batch_img    = images[idx]
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
@@ -237,8 +248,14 @@ if __name__ == '__main__':
             batch_images[i, ...] = img
             i+=1
 
-         # comes out as (1, batch, 64, 64, 3), so squeezing it
-         gen_imgs = np.squeeze(np.asarray(sess.run([gen_images], feed_dict={z:batch_z, y:batch_y, fy:batch_fy,real_images:batch_images})))
+         if MATCH == 'True':
+            batch_fy = 1-batch_y
+            # comes out as (1, batch, 64, 64, 3), so squeezing it
+            gen_imgs = np.squeeze(np.asarray(sess.run([gen_images],
+                                    feed_dict={z:batch_z, y:batch_y, fy:batch_fy,real_images:batch_images})))
+         else:
+            gen_imgs = np.squeeze(np.asarray(sess.run([gen_images],
+                                    feed_dict={z:batch_z, y:batch_y, real_images:batch_images})))
 
          num = 0
          for img,atr in zip(gen_imgs, batch_y):
