@@ -29,18 +29,18 @@ if __name__ == '__main__':
    parser.add_argument('--EPOCHS',     required=False,help='Maximum training steps',  type=int,default=25)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    parser.add_argument('--DIST',       required=False,help='Distribution to use',     type=str,default='normal')
-   parser.add_argument('--MATCH',      required=False,help='Match discriminator',     type=bool,default=0)
+   parser.add_argument('--MATCH',      required=False,help='Match discriminator',     type=int,default=0)
    a = parser.parse_args()
 
    LOSS           = a.LOSS
    DIST           = a.DIST
-   MATCH          = str(a.MATCH)
+   MATCH          = bool(a.MATCH)
    EPOCHS         = a.EPOCHS
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
    BATCH_SIZE     = a.BATCH_SIZE
 
-   CHECKPOINT_DIR = 'checkpoints/gan/DATASET_'+DATASET+'/LOSS_'+LOSS+'/DIST_'+str(DIST)+'/MATCH_'+MATCH+'/'
+   CHECKPOINT_DIR = 'checkpoints/gan/DATASET_'+DATASET+'/LOSS_'+LOSS+'/DIST_'+str(DIST)+'/MATCH_'+str(MATCH)+'/'
    IMAGES_DIR     = CHECKPOINT_DIR+'images/'
 
    try: os.makedirs(IMAGES_DIR)
@@ -168,11 +168,11 @@ if __name__ == '__main__':
 
    print 'train num:',train_len
    print 'test num:',test_len
-
+   
    epoch_num = step/(train_len/BATCH_SIZE)
 
+   epoch_num = 1
    while epoch_num < EPOCHS:
-      
       epoch_num = step/(train_len/BATCH_SIZE)
       start = time.time()
 
@@ -191,7 +191,7 @@ if __name__ == '__main__':
             batch_images[i, ...] = img
             i+=1
 
-         if MATCH == 'True':
+         if MATCH == True:
             batch_fy = 1-batch_y
             sess.run(D_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
          else:
@@ -211,7 +211,7 @@ if __name__ == '__main__':
          i+=1
 
       # now get all losses and summary *without* performing a training step - for tensorboard and printing
-      if MATCH == 'True':
+      if MATCH == True:
          sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
          sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
          batch_fy = 1-batch_y
@@ -250,7 +250,7 @@ if __name__ == '__main__':
             batch_images[i, ...] = img
             i+=1
 
-         if MATCH == 'True':
+         if MATCH == True:
             batch_fy = 1-batch_y
             # comes out as (1, batch, 64, 64, 3), so squeezing it
             gen_imgs = np.squeeze(np.asarray(sess.run([gen_images],
