@@ -94,21 +94,16 @@ if __name__ == '__main__':
    #images_        = data.keys()
    #t              = data.values()
 
-   images_ = []
    latents = []
+   images_ = []
 
    for k,v in data.iteritems():
-      k = np
-      print k
-      print v
-      exit()
+      images_.append(k)
+      latents.append(v[1])
 
-
-   latents = np.asarray(latents)
-   print latents.shape
-   exit()
-   images_ = np.asarray(images_)
-   train_len      = len(latents)
+   images_   = np.asarray(images_)
+   latents   = np.asarray(latents)
+   train_len = len(latents)
    
    print 'train num:',train_len
 
@@ -120,7 +115,7 @@ if __name__ == '__main__':
       epoch_num = step/(train_len/BATCH_SIZE)
 
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
-      batch_z      = np.squeeze(latents[idx])
+      batch_z      = latents[idx]
       batch_img    = images_[idx]
       batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
       i = 0
