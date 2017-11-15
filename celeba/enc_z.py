@@ -93,10 +93,10 @@ if __name__ == '__main__':
    data           = pickle.load(pkl_file)
    images_        = data.keys()
    t              = data.values()
-   train_len      = len(latents)
-   
    latents = np.asarray(latents)
    images_ = np.asarray(images_)
+   train_len      = len(latents)
+   
 
    print 'train num:',train_len
 
