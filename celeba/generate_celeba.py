@@ -91,16 +91,14 @@ if __name__ == '__main__':
    c = 0
    print 'generating data...'
    for step in tqdm(range(int(MAX_GEN/BATCH_SIZE))):
-   #for step in range(int(MAX_GEN/BATCH_SIZE)):
-
       idx     = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
       batch_z = np.random.normal(0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y = test_annots[idx]
 
       gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y})[0]
-      for im in gen_imgs:
+      for im,y_,z_ in zip(gen_imgs,batch_y,batch_z):
          image_name = OUTPUT_DIR+'img_'+str(c)+'.png'
-         info_dict[image_name] = [batch_y, batch_z]
+         info_dict[image_name] = [y_, z_]
          misc.imsave(image_name, im)
          c += 1
 

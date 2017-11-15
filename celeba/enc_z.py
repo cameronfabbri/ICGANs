@@ -91,13 +91,25 @@ if __name__ == '__main__':
    
    # dictionary of [image_name] = [batch_y,batch_z]
    data           = pickle.load(pkl_file)
-   images_        = data.keys()
-   t              = data.values()
+   #images_        = data.keys()
+   #t              = data.values()
+
+   images_ = []
+   latents = []
+
+   for k,v in data.iteritems():
+      k = np
+      print k
+      print v
+      exit()
+
+
    latents = np.asarray(latents)
+   print latents.shape
+   exit()
    images_ = np.asarray(images_)
    train_len      = len(latents)
    
-
    print 'train num:',train_len
 
    epoch_num = step/(train_len/BATCH_SIZE)
