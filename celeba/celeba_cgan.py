@@ -170,8 +170,7 @@ if __name__ == '__main__':
    print 'test num:',test_len
    
    epoch_num = step/(train_len/BATCH_SIZE)
-
-   epoch_num = 1
+   
    while epoch_num < EPOCHS:
       epoch_num = step/(train_len/BATCH_SIZE)
       start = time.time()
@@ -182,7 +181,6 @@ if __name__ == '__main__':
          batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = annots[idx]
          batch_img    = images[idx]
-
 
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
          i = 0
@@ -210,7 +208,6 @@ if __name__ == '__main__':
          batch_images[i, ...] = img
          i+=1
 
-      # now get all losses and summary *without* performing a training step - for tensorboard and printing
       if MATCH == True:
          sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
          sess.run(G_train_op, feed_dict={z:batch_z, y:batch_y, fy:batch_fy, real_images:batch_images})
@@ -218,6 +215,7 @@ if __name__ == '__main__':
          D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op],
                                  feed_dict={z:batch_z, y:batch_y, fy: batch_fy, real_images:batch_images})
       else:
+         # now get all losses and summary *without* performing a training step - for tensorboard and printing
          D_loss, G_loss, summary = sess.run([errD, errG, merged_summary_op],
                                  feed_dict={z:batch_z, y:batch_y, real_images:batch_images})
 
