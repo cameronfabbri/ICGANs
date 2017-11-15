@@ -1,8 +1,6 @@
 '''
 
-   MNIST dataset generator.
-
-   This file generates mnist the latent z vectors and the corresponding images such that the encoder can be trained
+   This file generates celeba latent z vectors and the corresponding images such that the encoder can be trained
 
 '''
 import matplotlib.pyplot as plt
@@ -44,7 +42,7 @@ if __name__ == '__main__':
    MAX_GEN        = a.MAX_GEN
    DATA_DIR       = a.DATA_DIR
 
-   BATCH_SIZE = 1
+   BATCH_SIZE = 64
 
    try: os.makedirs(OUTPUT_DIR)
    except: pass
@@ -77,6 +75,9 @@ if __name__ == '__main__':
    print 'Loading data...'
    images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
 
+   #test_images = images
+   #test_annots = annots
+
    test_len = len(test_annots)
 
    step = 0
@@ -88,15 +89,17 @@ if __name__ == '__main__':
    info_dict = {}
 
    print 'generating data...'
-   for step in tqdm(range(MAX_GEN)):
+   for step in tqdm(range(int(MAX_GEN/BATCH_SIZE))):
       idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
-      batch_z      = np.random.normal(-1.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
+      batch_z      = np.random.normal(0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y      = test_annots[idx]
 
-      gen_imgs   = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y})[0][0]
-      image_name = OUTPUT_DIR+'img_'+str(step)+'.png'
-      info_dict[image_name] = [batch_y, batch_z]
-      misc.imsave(image_name, gen_imgs)
+      gen_imgs   = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y})[0]
+      for im in gen_imgs:
+         image_name = OUTPUT_DIR+'img_'+str(step)+'.png'
+         info_dict[image_name] = [batch_y, batch_z]
+         misc.imsave(image_name, im)
+         step += 1
       step += 1
 
    # write out dictionary to pickle file

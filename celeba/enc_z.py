@@ -114,6 +114,8 @@ if __name__ == '__main__':
       i = 0
       for img in batch_img:
          img = data_ops.normalize(misc.imread(img))
+         r = random.random()
+         if r < 0.5: img = np.fliplr(img) # randomly flip left right half the time.
          batch_images[i, ...] = img
          i+=1
 

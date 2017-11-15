@@ -59,12 +59,14 @@ if __name__ == '__main__':
    # get the output from D on the real and fake data
    errD_real = netD(real_images, y, BATCH_SIZE, LOSS)
    # matching aware discriminator - send real images in with fake labels and mark as fake
+   '''
    if MATCH == 'True':
       errD_fake1 = 0.5*netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
       errD_fake2 = 0.5*netD(real_images, fy, BATCH_SIZE, LOSS, reuse=True)
       errD_fake = errD_fake1 + errD_fake2
       print 'using match'
-   else: errD_fake = netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
+   '''
+   errD_fake = netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
 
    # Important! no initial activations done on the last layer for D, so if one method needs an activation, do it
    e = 1e-12
