@@ -54,7 +54,8 @@ if __name__ == '__main__':
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
-
+   D_score = netD(gen_images, y, BATCH_SIZE, 'wgan')
+   
    saver = tf.train.Saver(max_to_keep=1)
    init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
    sess  = tf.Session()
@@ -90,17 +91,23 @@ if __name__ == '__main__':
 
    c = 0
    print 'generating data...'
-   for step in tqdm(range(int(MAX_GEN/BATCH_SIZE))):
+   #for step in tqdm(range(int(MAX_GEN/BATCH_SIZE))):
+   while step < tqdm(MAX_GEN):
       idx     = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
       batch_z = np.random.normal(0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y = test_annots[idx]
 
       gen_imgs = sess.run([gen_images], feed_dict={z:batch_z, y:batch_y})[0]
-      for im,y_,z_ in zip(gen_imgs,batch_y,batch_z):
-         image_name = OUTPUT_DIR+'img_'+str(c)+'.png'
-         info_dict[image_name] = [y_, z_]
-         misc.imsave(image_name, im)
-         c += 1
+      # get score from the discriminator
+      dscores = sess.run([D_score], feed_dict={z:batch_z, y:batch_y})[0]
+
+      for im,y_,z_,score in zip(gen_imgs,batch_y,batch_z,dscores):
+         s = np.mean(score)
+         if s > -4.0:
+            image_name = OUTPUT_DIR+'img_'+str(c)+'.png'
+            info_dict[image_name] = [y_, z_]
+            misc.imsave(image_name, im)
+            c += 1
 
    # write out dictionary to pickle file
    p = open(OUTPUT_DIR+'data.pkl', 'wb')
