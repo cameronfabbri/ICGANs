@@ -72,9 +72,6 @@ if __name__ == '__main__':
    # images and annots: _, __
    train_images, train_annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
 
-   test_images = train_images
-   test_annots = train_annots
-   
    test_len = len(test_annots)
    print 'test num:',test_len
 
