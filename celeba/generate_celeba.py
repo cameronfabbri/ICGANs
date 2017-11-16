@@ -76,8 +76,8 @@ if __name__ == '__main__':
    print 'Loading data...'
    images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
 
-   #test_images = images
-   #test_annots = annots
+   test_images = images
+   test_annots = annots
 
    test_len = len(test_annots)
 
@@ -90,9 +90,10 @@ if __name__ == '__main__':
    info_dict = {}
 
    c = 0
+   r = 0
    print 'generating data...'
    #for step in tqdm(range(int(MAX_GEN/BATCH_SIZE))):
-   while step < tqdm(MAX_GEN):
+   while c < MAX_GEN:
       idx     = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
       batch_z = np.random.normal(0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y = test_annots[idx]
@@ -108,6 +109,9 @@ if __name__ == '__main__':
             info_dict[image_name] = [y_, z_]
             misc.imsave(image_name, im)
             c += 1
+         #else:
+         #   misc.imsave('rejects/reject_'+str(r)+'.png', im)
+         #   r += 1
 
    # write out dictionary to pickle file
    p = open(OUTPUT_DIR+'data.pkl', 'wb')

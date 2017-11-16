@@ -135,8 +135,11 @@ if __name__ == '__main__':
       new_y = np.zeros((9))
       new_y = label
       new_y[0][4] = 1
-      new_y[0][-1] = 1
-      #new_y = np.expand_dims(new_y, 0)
+      #new_y[0][-1] = 1
+      #new_y[0][-2] = 1
+      #new_y[0][-3] = 1
+      
+      
       print new_y
       
       new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
