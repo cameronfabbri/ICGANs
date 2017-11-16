@@ -1,5 +1,10 @@
 '''
-   conditional gan
+
+   Getting the scores for images generated.
+
+   Generate a batch of images, get their scores from D, reject those with a score
+   below a threshold. This should give us very good generated images for the training set.
+
 '''
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
