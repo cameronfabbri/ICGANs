@@ -3,13 +3,13 @@
    Generates a dataset of encodings from real images using the trained encoder.
 
 '''
+import tensorflow.contrib.layers as tcl
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
-import tensorflow.contrib.layers as tcl
 import cPickle as pickle
+from tqdm import tqdm
 import numpy as np
 import argparse
 import random
@@ -26,6 +26,11 @@ from tf_ops import *
 import data_ops
 from nets import *
 
+def batch(iterable, n=1):
+   l = len(iterable)
+   for ndx in range(0, l, n):
+      yield iterable[ndx:min(ndx + n, l)]
+
 if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
@@ -41,13 +46,15 @@ if __name__ == '__main__':
    DATA_DIR       = a.DATA_DIR
    OUTPUT_DIR     = a.OUTPUT_DIR
    ACTIVATION     = a.ACTIVATION
-   
+  
+   BATCH_SIZE = 64
+
    try: os.makedirs(OUTPUT_DIR)
    except: pass
 
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
-   images      = tf.placeholder(tf.float32, shape=(1, 64, 64, 3), name='images')
+   images      = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='images')
 
    encoded = encZ(images, ACTIVATION)
 
@@ -76,15 +83,27 @@ if __name__ == '__main__':
    print 'test num:',test_len
 
    info = {}
+   
+   for x in batch(train_images, BATCH_SIZE):
+      if x.shape[0] < 64: break
+      batch_images = []
+      for im in x:
+         img = misc.imread(im).astype('float32')
+         batch_images.append(img)
+      batch_images = np.asarray(batch_images)
+      encoding = sess.run([encoded], feed_dict={images:batch_images})[0]
+      for ip,e in zip(x,encoding):
+         info[ip] = e
 
+   '''   
    # want to write out a file with the image path and z vector
    for image_path,label in tqdm(zip(test_images, test_annots)):
-
-      img              = misc.imread(image_path).astype('float32')
-      batch_images     = np.expand_dims(img, 0)
-      encoding         = sess.run([encoded], feed_dict={images:batch_images})[0][0]
+      img          = data_ops.normalize(misc.imread(image_path))
+      batch_images = np.expand_dims(img, 0)
+      encoding     = sess.run([encoded], feed_dict={images:batch_images})[0]
       info[image_path] = [encoding, label]
-
+   '''
+   
    # write out dictionary to pickle file
    p = open(OUTPUT_DIR+'data.pkl', 'wb')
    data = pickle.dumps(info)
