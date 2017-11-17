@@ -132,7 +132,7 @@ if __name__ == '__main__':
       # bald, bangs, black_hair, blond_hair, eyeglasses, heavy_makeup, male, pale_skin, smiling
       new_y = np.int32(np.zeros((9)))
       new_y = np.expand_dims(new_y, 0)
-
+      new_y = label
       '''
       print 'label:',label
       for r in range(9):
@@ -144,10 +144,7 @@ if __name__ == '__main__':
       '''
 
       print 'label:',label
-      new_y[0][2] = 1
-      new_y[0][-1] = 1
-      new_y[0][-3] = 1
-      new_y[0][-4] = 1
+      new_y[0][-2] = 1
       print 'label:',label
       print 'new_y:',new_y
       new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))

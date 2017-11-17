@@ -123,11 +123,13 @@ def load_galaxy(data_dir):
          if image_id in train_ids:
             img = misc.imread(iptr+image_id+'.png').astype('float32')
             img = misc.imresize(img, (64, 64))
+            img = normalize(img)
             train_images.append(img)
             train_attributes.append(line)
          elif image_id in test_ids:
             img = misc.imread(ipte+image_id+'.png').astype('float32')
             img = misc.imresize(img, (64, 64))
+            img = normalize(img)
             test_images.append(img)
             test_attributes.append(line)
 

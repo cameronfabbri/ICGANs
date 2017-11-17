@@ -26,7 +26,7 @@ if __name__ == '__main__':
    parser.add_argument('--LOSS',       required=False,help='Type of GAN loss to use', type=str,default='wgan')
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='galaxy')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--EPOCHS',     required=False,help='Maximum training steps',  type=int,default=25)
+   parser.add_argument('--EPOCHS',     required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    parser.add_argument('--DIST',       required=False,help='Distribution to use',     type=str,default='normal')
    parser.add_argument('--MATCH',      required=False,help='Match discriminator',     type=int,default=0)
@@ -46,7 +46,6 @@ if __name__ == '__main__':
 
    print 'Loading data...'
    images, annots, test_images, test_annots = data_ops.load_galaxy(DATA_DIR)
-   exit()
 
    try: os.makedirs(IMAGES_DIR)
    except: pass
@@ -55,22 +54,13 @@ if __name__ == '__main__':
    global_step = tf.Variable(0, name='global_step', trainable=False)
    real_images = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 64, 64, 3), name='real_images')
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='y')
-   fy          = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='fy')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 14), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
 
    # get the output from D on the real and fake data
    errD_real = netD(real_images, y, BATCH_SIZE, LOSS)
-   # matching aware discriminator - send real images in with fake labels and mark as fake
-   '''
-   if MATCH == 'True':
-      errD_fake1 = 0.5*netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
-      errD_fake2 = 0.5*netD(real_images, fy, BATCH_SIZE, LOSS, reuse=True)
-      errD_fake = errD_fake1 + errD_fake2
-      print 'using match'
-   '''
    errD_fake = netD(gen_images, y, BATCH_SIZE, LOSS, reuse=True)
 
    # Important! no initial activations done on the last layer for D, so if one method needs an activation, do it
@@ -183,14 +173,7 @@ if __name__ == '__main__':
          idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
          batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = annots[idx]
-         batch_img    = images[idx]
-
-         batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
-         i = 0
-         for img in batch_img:
-            img = data_ops.normalize(misc.imread(img))
-            batch_images[i, ...] = img
-            i+=1
+         batch_images = images[idx]
 
          if MATCH == True:
             batch_fy = 1-batch_y
@@ -202,14 +185,7 @@ if __name__ == '__main__':
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
       batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
       batch_y      = annots[idx]
-      batch_img    = images[idx]
-      batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
-      
-      i = 0
-      for img in batch_img:
-         img = data_ops.normalize(misc.imread(img))
-         batch_images[i, ...] = img
-         i+=1
+      batch_images = images[idx]
 
       if MATCH == True:
          batch_fy = 1-batch_y
@@ -235,8 +211,7 @@ if __name__ == '__main__':
          idx          = np.random.choice(np.arange(test_len), BATCH_SIZE, replace=False)
          batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
          batch_y      = test_annots[idx]
-         batch_img    = test_images[idx]
-         batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
+         batch_images = test_images[idx]
          '''
          idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
          batch_z      = np.random.normal(0.0, 1.0, size=[BATCH_SIZE, 100]).astype(np.float32)
@@ -244,12 +219,6 @@ if __name__ == '__main__':
          batch_img    = images[idx]
          batch_images = np.empty((BATCH_SIZE, 64, 64, 3), dtype=np.float32)
          '''
-
-         i = 0
-         for img in batch_img:
-            img = data_ops.normalize(misc.imread(img))
-            batch_images[i, ...] = img
-            i+=1
 
          if MATCH == True:
             batch_fy = 1-batch_y
