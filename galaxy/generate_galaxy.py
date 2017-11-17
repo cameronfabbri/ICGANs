@@ -1,7 +1,5 @@
 '''
-
    This file generates celeba latent z vectors and the corresponding images such that the encoder can be trained
-
 '''
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
@@ -50,7 +48,7 @@ if __name__ == '__main__':
    # placeholders for data going into the network
    global_step = tf.Variable(0, name='global_step', trainable=False)
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 14), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -74,7 +72,7 @@ if __name__ == '__main__':
          exit()
    
    print 'Loading data...'
-   images, annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
+   images, annots, test_images, test_annots = data_ops.load_galaxy(DATA_DIR)
 
    test_images = images
    test_annots = annots

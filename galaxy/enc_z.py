@@ -28,10 +28,10 @@ from nets import *
 if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
-   parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
+   parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='galaxy')
    parser.add_argument('--LOSS',       required=False,help='What type of GAN',        type=str,default='wgan')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=200)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    parser.add_argument('--ACTIVATION', required=False,help='Activation function',     type=str,default='lrelu')
    a = parser.parse_args()

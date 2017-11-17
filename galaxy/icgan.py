@@ -98,7 +98,6 @@ if __name__ == '__main__':
    t        = data.values()
 
    encodings, labels = zip(*t)
-   #labels, encodings = zip(*t)
 
    test_len = len(images_)
 
@@ -144,6 +143,7 @@ if __name__ == '__main__':
       '''
 
       print 'label:',label
+      exit()
       new_y[0][-2] = 1
       print 'label:',label
       print 'new_y:',new_y
