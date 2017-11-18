@@ -114,6 +114,7 @@ def load_galaxy(data_dir):
    train_attributes = []
    test_attributes  = []
 
+   paths = []
    with open(data_dir+'EFIGI_attributes.txt', 'r') as f:
       for line in f:
          line     = line.rstrip().split()
@@ -127,6 +128,7 @@ def load_galaxy(data_dir):
             train_images.append(img)
             train_attributes.append(line)
          elif image_id in test_ids:
+            paths.append(ipte+image_id+'.png')
             img = misc.imread(ipte+image_id+'.png').astype('float32')
             img = misc.imresize(img, (64, 64))
             img = normalize(img)
@@ -138,7 +140,7 @@ def load_galaxy(data_dir):
    train_attributes = np.asarray(train_attributes)
    test_attributes = np.asarray(test_attributes)
 
-   return train_images, train_attributes, test_images, test_attributes
+   return train_images, train_attributes, test_images, test_attributes, paths
 
 def load_mnist(data_dir, mode='train'):
 

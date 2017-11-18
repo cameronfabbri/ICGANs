@@ -67,7 +67,8 @@ if __name__ == '__main__':
    print 'Loading data...'
 
    image = a.IMAGE
-   label = np.asarray([1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 1., 1., 0., 0.])
+   # bald, bangs, black_hair, blond_hair, eyeglasses, heavy_makeup, male, pale_skin, smiling
+   label = np.asarray([1., 0., 1., 0., 1., 0., 1., 0., 0.])
 
    info = {}
    img              = misc.imread(image).astype('float32')

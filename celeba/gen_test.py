@@ -47,7 +47,7 @@ if __name__ == '__main__':
    OUTPUT_DIR     = a.OUTPUT_DIR
    ACTIVATION     = a.ACTIVATION
   
-   BATCH_SIZE = 64
+   BATCH_SIZE = 1
 
    try: os.makedirs(OUTPUT_DIR)
    except: pass
@@ -86,6 +86,7 @@ if __name__ == '__main__':
 
    info = {}
    
+   '''
    for x in batch(train_images, BATCH_SIZE):
       if len(x) < 64: break
       batch_images = []
@@ -106,7 +107,6 @@ if __name__ == '__main__':
       batch_images = np.expand_dims(img, 0)
       encoding     = sess.run([encoded], feed_dict={images:batch_images})[0]
       info[image_path] = [encoding, label]
-   '''
    
    # write out dictionary to pickle file
    p = open(OUTPUT_DIR+'data.pkl', 'wb')

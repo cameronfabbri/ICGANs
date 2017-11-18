@@ -113,7 +113,7 @@ def encZ(x, ACTIVATION):
 
    fc1 = tcl.fully_connected(conv4_flat, 4096, activation_fn=tf.identity, normalizer_fn=tcl.batch_norm, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc1')
    fc1 = activate(fc1, ACTIVATION)
-   fc1 = tcl.dropout(fc1, 0.5)
+   #fc1 = tcl.dropout(fc1, 0.5)
    
    fc2 = tcl.fully_connected(fc1, 100, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc2')
    
