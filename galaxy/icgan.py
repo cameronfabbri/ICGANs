@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
    # placeholders for data going into the network
    z           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 100), name='z')
-   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 9), name='y')
+   y           = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 14), name='y')
 
    # generated images
    gen_images = netG(z, y, BATCH_SIZE)
@@ -112,7 +112,8 @@ if __name__ == '__main__':
    for n in tqdm(range(int(NUM_GEN))):
 
       idx = np.random.choice(np.arange(test_len), 1, replace=False)
-
+      idx = np.asarray([85])
+      
       original_image = images_[idx]
       label          = labels[idx]
       z_             = encodings[idx]
@@ -120,12 +121,12 @@ if __name__ == '__main__':
       original_image = misc.imread(original_image[0])
       #original_image = data_ops.normalize(original_image)
 
-      label = np.reshape(label, (1,9))
+      label = np.reshape(label, (1,14))
       z_    = np.reshape(z_, (1,100))
 
       reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
 
-      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', original_image)
+      misc.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', misc.imresize(original_image, (64,64)))
       misc.imsave(IMAGES_DIR+str('000')+str(n)+'_r.png', reconstruction)
 
       # bald, bangs, black_hair, blond_hair, eyeglasses, heavy_makeup, male, pale_skin, smiling
@@ -143,8 +144,7 @@ if __name__ == '__main__':
       '''
 
       print 'label:',label
-      exit()
-      new_y[0][-2] = 1
+      #new_y[0][0] = 2
       print 'label:',label
       print 'new_y:',new_y
       new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))

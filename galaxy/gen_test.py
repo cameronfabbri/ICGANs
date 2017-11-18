@@ -70,7 +70,7 @@ if __name__ == '__main__':
    print 'Loading data...'
 
    # images and annots: _, __
-   train_images, train_annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
+   train_images, train_annots, test_images, test_annots, paths = data_ops.load_galaxy(DATA_DIR)
 
    test_len = len(test_annots)
    print 'test num:',test_len
@@ -78,12 +78,11 @@ if __name__ == '__main__':
    info = {}
 
    # want to write out a file with the image path and z vector
-   for image_path,label in tqdm(zip(test_images, test_annots)):
-
-      img              = misc.imread(image_path).astype('float32')
+   for p,img,label in tqdm(zip(paths, test_images, test_annots)):
+      img = data_ops.normalize(img)
       batch_images     = np.expand_dims(img, 0)
       encoding         = sess.run([encoded], feed_dict={images:batch_images})[0][0]
-      info[image_path] = [encoding, label]
+      info[p] = [encoding, label]
 
    # write out dictionary to pickle file
    p = open(OUTPUT_DIR+'data.pkl', 'wb')
