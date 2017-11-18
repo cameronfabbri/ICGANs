@@ -126,10 +126,10 @@ if __name__ == '__main__':
          batch_images[i, ...] = img
          i+=1
 
-      if step > 100000 and step < 200000: lr_ = 1e-4
-      if step > 200000 and step < 300000: lr_ = 1e-5
-      if step > 300000 and step < 400000: lr_ = 1e-6
-      if step > 400000: lr_ = 1e-7
+      if epoch_num > 100 and epoch_num < 200: lr_ = 1e-4
+      if epoch_num > 200 and epoch_num < 300: lr_ = 1e-5
+      if epoch_num > 300 and epoch_num < 400: lr_ = 1e-6
+      if epoch_num > 400: lr_ = 1e-7
 
       _,l = sess.run([train_op, loss], feed_dict={images:batch_images, z:batch_z, lr:lr_})
       if step%10==0: print 'epoch:',epoch_num,'step:',step,'loss:',l

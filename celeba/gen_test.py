@@ -79,13 +79,15 @@ if __name__ == '__main__':
    # images and annots: _, __
    train_images, train_annots, test_images, test_annots = data_ops.load_celeba(DATA_DIR)
 
+   ttt = [train_images, train_annots]
+
    test_len = len(test_annots)
    print 'test num:',test_len
 
    info = {}
    
    for x in batch(train_images, BATCH_SIZE):
-      if x.shape[0] < 64: break
+      if len(x) < 64: break
       batch_images = []
       for im in x:
          img = misc.imread(im).astype('float32')
@@ -93,7 +95,9 @@ if __name__ == '__main__':
       batch_images = np.asarray(batch_images)
       encoding = sess.run([encoded], feed_dict={images:batch_images})[0]
       for ip,e in zip(x,encoding):
-         info[ip] = e
+         info[ip] = [e]
+         print info
+         exit()
 
    '''   
    # want to write out a file with the image path and z vector

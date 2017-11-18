@@ -117,6 +117,9 @@ def encZ(x, ACTIVATION):
    
    fc2 = tcl.fully_connected(fc1, 100, activation_fn=tf.identity, weights_initializer=tf.random_normal_initializer(stddev=0.02), scope='fc2')
    
+   # relu to match the [0,1] range from the distribution
+   fc2 = relu(fc2)
+
    print 'input:',x
    print 'conv1:',conv1
    print 'conv2:',conv2
