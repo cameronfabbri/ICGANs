@@ -72,7 +72,7 @@ if __name__ == '__main__':
          exit()
    
    print 'Loading data...'
-   images, annots, test_images, test_annots = data_ops.load_galaxy(DATA_DIR)
+   images, annots, test_images, test_annots, _ = data_ops.load_galaxy(DATA_DIR)
 
    test_images = images
    test_annots = annots

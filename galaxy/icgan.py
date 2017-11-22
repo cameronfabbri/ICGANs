@@ -144,7 +144,7 @@ if __name__ == '__main__':
       '''
 
       print 'label:',label
-      #new_y[0][0] = 2
+      new_y[0][0] = 2
       print 'label:',label
       print 'new_y:',new_y
       new_image = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
