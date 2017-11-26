@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
    parser.add_argument('--CHECKPOINT_DIR', required=True,help='checkpoint directory',type=str)
-   parser.add_argument('--DATASET',        required=False,help='The DATASET to use',      type=str,default='celeba')
+   parser.add_argument('--DATASET',        required=False,help='The DATASET to use',      type=str,default='mnist')
    parser.add_argument('--OUTPUT_DIR',     required=False,help='Directory where data is', type=str,default='./')
    parser.add_argument('--MAX_GEN',        required=False,help='Maximum training steps',  type=int,default=100000)
    a = parser.parse_args()

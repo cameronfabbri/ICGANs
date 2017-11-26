@@ -24,25 +24,20 @@ from tf_ops import *
 import data_ops
 from nets import *
 
-def activate(x, ACTIVATION):
-   if ACTIVATION == 'lrelu': return lrelu(x)
-   if ACTIVATION == 'relu':  return relu(x)
-   if ACTIVATION == 'elu':   return elu(x)
-   if ACTIVATION == 'swish': return swish(x)
 
 if __name__ == '__main__':
 
    parser = argparse.ArgumentParser()
    parser.add_argument('--DATASET',    required=False,help='The DATASET to use',      type=str,default='celeba')
    parser.add_argument('--DATA_DIR',   required=False,help='Directory where data is', type=str,default='./')
-   parser.add_argument('--MAX_STEPS',  required=False,help='Maximum training steps',  type=int,default=100000)
+   parser.add_argument('--EPOCHS',  required=False,help='Maximum training steps',  type=int,default=100000)
    parser.add_argument('--BATCH_SIZE', required=False,help='Batch size',              type=int,default=64)
    parser.add_argument('--ACTIVATION', required=False,help='Activation function',     type=str,default='lrelu')
    a = parser.parse_args()
 
    DATASET        = a.DATASET
    DATA_DIR       = a.DATA_DIR
-   MAX_STEPS      = a.MAX_STEPS
+   EPOCHS      = a.EPOCHS
    BATCH_SIZE     = a.BATCH_SIZE
    ACTIVATION     = a.ACTIVATION
 
@@ -99,7 +94,11 @@ if __name__ == '__main__':
 
    lr_ = 1e-4
 
-   while step < MAX_STEPS:
+   epoch_num = step/(train_len/BATCH_SIZE)
+
+   while epoch_num < EPOCHS:
+   
+      epoch_num = step/(train_len/BATCH_SIZE)
 
       idx          = np.random.choice(np.arange(train_len), BATCH_SIZE, replace=False)
       batch_images = mimages[idx]
@@ -108,7 +107,8 @@ if __name__ == '__main__':
       if step > 25000: lr_ = 1e-5
 
       _,l = sess.run([train_op, loss], feed_dict={images:batch_images, z:batch_z, lr:lr_})
-      print 'step:',step,'loss:',l
+      if step % 10 == 0:
+         print 'epoch:',epoch_num,' step:',step,' loss:',l
       step += 1
     
    print 'Saving model...'

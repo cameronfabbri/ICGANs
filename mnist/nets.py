@@ -3,6 +3,12 @@ import tensorflow.contrib.layers as tcl
 from tf_ops import *
 import data_ops
 
+def activate(x, ACTIVATION):
+   if ACTIVATION == 'lrelu': return lrelu(x)
+   if ACTIVATION == 'relu':  return relu(x)
+   if ACTIVATION == 'elu':   return elu(x)
+   if ACTIVATION == 'swish': return swish(x)
+
 '''
    Generator network
    batch norm before activation function
