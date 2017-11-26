@@ -82,6 +82,7 @@ if __name__ == '__main__':
 
 
    print 'Loading data...'
+   '''
    mimages = np.load(DATA_DIR+'images.npy')
    latents = np.load(DATA_DIR+'latents.npy')
    labels  = []
@@ -94,6 +95,8 @@ if __name__ == '__main__':
             labels.append(zero)
    labels = np.asarray(labels)
    test_len = len(labels)
+   '''
+
    print 'Done'
    print
    '''

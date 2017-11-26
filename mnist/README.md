@@ -6,4 +6,8 @@ use in the generator to generate them. These pairs are to be used to train the e
 
 Third, run `enc_z.py` which trains the encoder to encode an image to its latent variable z.
 
+Fourth, run `gen_test.py`, which will generate a bunch of latent z variables from REAL images.
+These will be used in `icgan.py` with their attributes swapped.
+
+
 
