@@ -17,6 +17,7 @@ from matplotlib.pyplot import cm
 import scipy.misc as misc
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+import cPickle as pickle
 from tqdm import tqdm
 import numpy as np
 import argparse
@@ -82,21 +83,8 @@ if __name__ == '__main__':
 
 
    print 'Loading data...'
-   '''
-   mimages = np.load(DATA_DIR+'images.npy')
-   latents = np.load(DATA_DIR+'latents.npy')
-   labels  = []
-   with open(DATA_DIR+'/labels.txt', 'r') as f:
-      for line in f:
-         zero = np.zeros((10))
-         line = line.rstrip()
-         for l in line:
-            zero[int(l)] = 1
-            labels.append(zero)
-   labels = np.asarray(labels)
-   test_len = len(labels)
-   '''
-
+   data = pickle.load(open(DATA_DIR+'data.pkl'))
+   test_len = len(data)
    print 'Done'
    print
    '''
@@ -109,12 +97,13 @@ if __name__ == '__main__':
    for n in tqdm(range(int(NUM_GEN))):
 
       # get into form to pass to network
-      idx = np.random.choice(np.arange(test_len), 1, replace=False)
+      idx = np.random.choice(np.arange(test_len), 1, replace=False)[0]
 
-      original_image = mimages[idx]
-      label          = labels[idx]
-      z_             = latents[idx]
+      original_image = data[idx][0]
+      z_             = data[idx][1]
+      label          = data[idx][2]
 
+      label = np.expand_dims(label, 0)
       reconstruction = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:label}))
       
       plt.imsave(IMAGES_DIR+str('000')+str(n)+'_o.png', np.squeeze(original_image), cmap=cm.gray)
@@ -138,7 +127,7 @@ if __name__ == '__main__':
       
       new_gen = np.squeeze(sess.run(gen_images, feed_dict={z:z_, y:new_y}))
       plt.imsave(IMAGES_DIR+str('000')+str(n)+'_n.png', np.squeeze(new_gen), cmap=cm.gray)
-
+      exit()
       #print 'should be a',np.argmax(new_y[0]),'!'
       #print
 
